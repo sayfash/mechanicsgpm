@@ -1,0 +1,39 @@
+# Laravel Native App Refactoring Plan
+
+The goal is to completely migrate the legacy PHP application currently residing in the `sources` directory into native Laravel components, ensuring the app runs natively within the Laravel framework without relying on legacy scripts.
+
+## Current State
+- The frontend is served via `sources/index.html`.
+- The backend relies heavily on `sources/api.php`, a large script containing raw PDO SQL queries and handling API routing via a switch statement.
+- The Laravel app (`routes/api.php`, `routes/web.php`) is currently acting as a pass-through to these legacy files.
+
+## Proposed Phased Implementation
+
+To minimize disruption and ensure stability, this large refactoring should be done in phases.
+
+### Phase 1: Models and ORM (Eloquent)
+Instead of using raw SQL statements (e.g., `INSERT INTO vehicles...`), we will use Laravel's powerful Eloquent ORM.
+- **Tasks**: Generate Eloquent models for `Customer`, `Vehicle`, `MaintenanceRecord`, `Inventory`, `Branch`, and `AuditLog` inside `app/Models/`. Define the relationships between them (e.g., a Customer `hasMany` Vehicles).
+
+### Phase 2: Controllers & Routing
+We will replace the giant `switch` statement in `sources/api.php` with dedicated, organized Laravel Controllers.
+- **Tasks**:
+  - Create dedicated controllers in `app/Http/Controllers/API/` (e.g., `CustomerController`, `VehicleController`, `InventoryController`, `JobController`).
+  - Translate the logic from `api.php` into these controllers, utilizing the new Eloquent models.
+  - Define clear RESTful routes in `routes/api.php` (e.g., `POST /api/customers`, `GET /api/inventory`).
+
+### Phase 3: Frontend Alignment
+- **Tasks**:
+  - Migrate `sources/index.html` to a Blade template, likely replacing `resources/views/welcome.blade.php`.
+  - Update `public/assets/js/app.js` to point to the new Laravel API routes (e.g., `/api/vehicles/add` instead of using the legacy `action=add_vehicle` payload).
+  - Ensure CSRF tokens or Sanctum authentication tokens are correctly handled in the frontend's AJAX requests.
+
+### Phase 4: Cleanup
+- **Tasks**: 
+  - Once the native Laravel app is fully tested and functioning, safely delete the `sources` folder.
+
+## User Review Required
+> [!IMPORTANT]
+> This is a major architectural overhaul that will rewrite the entire backend (`api.php`) into Eloquent ORM. 
+> I recommend taking it one phase at a time.
+> **Does this phased approach sound good to you? Once you approve, I will begin by generating the Eloquent Models (Phase 1).**

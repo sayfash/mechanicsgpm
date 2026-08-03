@@ -1,0 +1,580 @@
+/* ==========================================================================
+   SGPM MECHANIC COMPLIANCE DESK - MAIN SYSTEM STYLESHEET
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. GLOBAL TYPOGRAPHY & BASE STYLES
+   -------------------------------------------------------------------------- */
+body {
+    font-family: 'Plus Jakarta Sans', 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    min-height: 100vh;
+}
+.font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+}
+
+/* --------------------------------------------------------------------------
+   2. GLASS PANELS & CARDS (DEFAULT & LIGHT MODE)
+   -------------------------------------------------------------------------- */
+.glass-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+.glass-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease-in-out;
+}
+.glass-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   3. CUSTOM SCROLLBARS & UTILITY CLASSES
+   -------------------------------------------------------------------------- */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.5);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.6);
+}
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Base Form Controls */
+input, select, textarea {
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+
+/* --------------------------------------------------------------------------
+   4. LIGHT MODE STYLING & HIGH CONTRAST RULES
+   -------------------------------------------------------------------------- */
+body.light-mode {
+    background-color: #f8fafc !important;
+    color: #0f172a !important;
+}
+body.light-mode #top-app-bar {
+    background-color: #ffffff !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+}
+body.light-mode #top-profile-dropdown {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #0f172a !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+body.light-mode #top-profile-dropdown #dropdown-user-name {
+    color: #0f172a !important;
+}
+body.light-mode #top-profile-dropdown #dropdown-user-email {
+    color: #64748b !important;
+}
+body.light-mode #top-profile-dropdown button,
+body.light-mode #top-profile-dropdown .theme-toggle-row {
+    color: #334155 !important;
+}
+body.light-mode #top-profile-dropdown button:hover,
+body.light-mode #top-profile-dropdown .theme-toggle-row:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+body.light-mode #app-sidebar,
+body.light-mode #mobile-nav-header,
+body.light-mode #mobile-nav-drawer {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+body.light-mode .nav-link-item:hover {
+    background-color: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+body.light-mode .nav-link-item.active {
+    background-color: #eff6ff !important;
+    color: #2563eb !important;
+}
+body.light-mode .sidebar-tooltip {
+    background-color: #1e293b;
+    color: #ffffff;
+    border-color: #475569;
+}
+body.light-mode .text-slate-100,
+body.light-mode .text-slate-200,
+body.light-mode .text-slate-300,
+body.light-mode .text-slate-400 {
+    color: #334155 !important;
+}
+body.light-mode .text-slate-500,
+body.light-mode .text-slate-600 {
+    color: #64748b !important;
+}
+body.light-mode .bg-slate-950,
+body.light-mode .bg-slate-900,
+body.light-mode .bg-slate-800,
+body.light-mode .bg-slate-900\/90,
+body.light-mode .bg-slate-900\/80,
+body.light-mode .bg-slate-900\/70,
+body.light-mode .bg-slate-900\/60,
+body.light-mode .bg-slate-900\/50,
+body.light-mode .bg-slate-900\/40,
+body.light-mode .bg-slate-900\/30,
+body.light-mode .bg-slate-900\/20,
+body.light-mode .bg-slate-950\/90,
+body.light-mode .bg-slate-950\/80,
+body.light-mode .bg-slate-950\/70,
+body.light-mode .bg-slate-950\/60,
+body.light-mode .bg-slate-950\/50,
+body.light-mode .bg-slate-950\/40,
+body.light-mode .bg-slate-950\/20 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+
+/* Modal Overlay & Glass Card in Light Mode */
+body.light-mode .fixed.bg-slate-950\/80,
+body.light-mode #global-dynamic-modal,
+body.light-mode #global-inventory-csv-modal,
+body.light-mode #super-admin-add-inventory-modal,
+body.light-mode #shop-admin-edit-inventory-modal {
+    background-color: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(8px) !important;
+}
+body.light-mode #global-dynamic-modal .glass-panel,
+body.light-mode #global-inventory-csv-modal .glass-panel,
+body.light-mode #super-admin-add-inventory-modal .glass-panel,
+body.light-mode #shop-admin-edit-inventory-modal .glass-panel {
+    background: #ffffff !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+body.light-mode .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+body.light-mode .bg-slate-100 span {
+    color: #0f172a !important;
+}
+body.light-mode .border-slate-800,
+body.light-mode .border-slate-900,
+body.light-mode .border-slate-700,
+body.light-mode .border-slate-800\/80,
+body.light-mode .border-slate-800\/60,
+body.light-mode .border-slate-800\/50,
+body.light-mode .border-slate-800\/40 {
+    border-color: #cbd5e1 !important;
+}
+body.light-mode .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/60 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/50 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/40 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #e2e8f0 !important;
+}
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+body.light-mode input:focus,
+body.light-mode select:focus,
+body.light-mode textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+}
+body.light-mode .bg-blue-600\/10 {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+body.light-mode table thead tr {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+}
+body.light-mode table tbody tr:hover {
+    background-color: #f1f5f9 !important;
+}
+body.light-mode label {
+    color: #334155 !important;
+}
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode h6 {
+    color: #0f172a !important;
+}
+body.light-mode .hover\:bg-slate-800:hover,
+body.light-mode .hover\:bg-slate-900:hover,
+body.light-mode .hover\:bg-slate-950:hover,
+body.light-mode .hover\:bg-slate-900\/80:hover,
+body.light-mode .hover\:bg-slate-900\/60:hover,
+body.light-mode .hover\:bg-slate-900\/40:hover,
+body.light-mode .hover\:bg-slate-900\/20:hover,
+body.light-mode .hover\:bg-slate-800\/80:hover,
+body.light-mode .hover\:bg-slate-800\/60:hover,
+body.light-mode .hover\:bg-slate-800\/40:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+body.light-mode .hover\:bg-blue-600\/20:hover,
+body.light-mode .hover\:bg-blue-600\/10:hover {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+body.light-mode .group:hover .group-hover\:bg-slate-700\/50,
+body.light-mode .group:hover .group-hover\:border-blue-500\/50 {
+    background-color: #e0f2fe !important;
+    border-color: #38bdf8 !important;
+}
+/* Accent Text Colors Contrast in Light Mode */
+body.light-mode .text-cyan-400 {
+    color: #0891b2 !important;
+}
+body.light-mode .text-amber-400 {
+    color: #d97706 !important;
+}
+body.light-mode .text-emerald-400 {
+    color: #059669 !important;
+}
+body.light-mode .text-blue-400 {
+    color: #2563eb !important;
+}
+
+/* Pagination Light Mode High-Contrast Rules */
+body.light-mode .pagination-container {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+body.light-mode .pagination-container select,
+body.light-mode .pagination-container input {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+body.light-mode .pagination-container button {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+body.light-mode .pagination-container button[disabled] {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+body.light-mode .pagination-container button:not([disabled]):hover {
+    background-color: #cbd5e1 !important;
+    color: #0284c7 !important;
+}
+body.light-mode .pagination-container span.bg-blue-600\/20 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #7dd3fc !important;
+}
+
+/* --------------------------------------------------------------------------
+   5. DARK MODE STYLING & HIGH CONTRAST OVERRIDES (body.dark-mode)
+   -------------------------------------------------------------------------- */
+body.dark-mode {
+    background-color: #060a13 !important;
+    color: #e2e8f0 !important;
+}
+body.dark-mode #top-app-bar {
+    background-color: #090d16 !important;
+    border-bottom: 1px solid #1e293b !important;
+    color: #f8fafc !important;
+}
+body.dark-mode #top-app-bar h1 {
+    color: #60a5fa !important;
+}
+body.dark-mode #top-app-bar p,
+body.dark-mode #top-app-bar span {
+    color: #94a3b8 !important;
+}
+body.dark-mode #top-profile-dropdown {
+    background-color: #0f172a !important;
+    border: 1px solid #1e293b !important;
+    color: #f8fafc !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+}
+body.dark-mode #top-profile-dropdown #dropdown-user-name {
+    color: #f8fafc !important;
+}
+body.dark-mode #top-profile-dropdown #dropdown-user-email {
+    color: #94a3b8 !important;
+}
+body.dark-mode #top-profile-dropdown button,
+body.dark-mode #top-profile-dropdown .theme-toggle-row {
+    color: #cbd5e1 !important;
+}
+body.dark-mode #top-profile-dropdown button:hover,
+body.dark-mode #top-profile-dropdown .theme-toggle-row:hover {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+}
+body.dark-mode #app-sidebar,
+body.dark-mode #mobile-nav-header,
+body.dark-mode #mobile-nav-drawer {
+    background-color: #090d16 !important;
+    border-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+body.dark-mode .glass-panel,
+body.dark-mode .glass-card {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #e2e8f0 !important;
+}
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: rgba(15, 23, 42, 0.9) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #f8fafc !important;
+}
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25) !important;
+}
+body.dark-mode table thead tr {
+    background-color: #0f172a !important;
+    color: #94a3b8 !important;
+}
+body.dark-mode table tbody tr:hover {
+    background-color: rgba(30, 41, 59, 0.7) !important;
+}
+
+/* --------------------------------------------------------------------------
+   6. RESPONSIVE TABLE & LAYOUT UTILITIES
+   -------------------------------------------------------------------------- */
+.overflow-x-auto {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+.overflow-x-auto table, table {
+    width: 100%;
+    min-width: max-content !important;
+    border-collapse: collapse;
+}
+.overflow-x-auto th, .overflow-x-auto td {
+    white-space: nowrap;
+}
+.overflow-x-auto th.wrap-cell, .overflow-x-auto td.wrap-cell {
+    white-space: normal;
+}
+@media (max-width: 1024px) {
+    .overflow-x-auto table, table {
+        min-width: max-content !important;
+    }
+}
+
+/* --------------------------------------------------------------------------
+   7. WEB APP SHELL & RESPONSIVE NAVIGATION STYLES
+   -------------------------------------------------------------------------- */
+.nav-link-item {
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.nav-link-item.active {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60a5fa !important;
+    font-weight: 600;
+}
+.nav-link-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 15%;
+    bottom: 15%;
+    width: 4px;
+    background: linear-gradient(180deg, #3b82f6 0%, #06b6d4 100%);
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+.nav-link-item.active i {
+    color: #3b82f6 !important;
+}
+
+#app-shell-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    position: relative !important;
+}
+@media (max-width: 767px) {
+    #app-shell-container {
+        flex-direction: column !important;
+    }
+    #app-sidebar {
+        display: none !important;
+    }
+    #app-main-content {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+@media (min-width: 768px) {
+    #app-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 16rem !important;
+        min-width: 16rem !important;
+        max-width: 16rem !important;
+        height: calc(100vh - 61px) !important;
+        position: sticky !important;
+        top: 61px !important;
+        left: 0 !important;
+        flex-shrink: 0 !important;
+        z-index: 30 !important;
+        align-self: flex-start !important;
+    }
+    #app-sidebar.hidden {
+        display: none !important;
+    }
+    #app-sidebar.sidebar-collapsed {
+        width: 5rem !important;
+        min-width: 5rem !important;
+        max-width: 5rem !important;
+        flex-shrink: 0 !important;
+    }
+    #app-sidebar.sidebar-collapsed .sidebar-label,
+    #app-sidebar.sidebar-collapsed .sidebar-section-title,
+    #app-sidebar.sidebar-collapsed .sidebar-user-details,
+    #app-sidebar.sidebar-collapsed .sidebar-brand-text {
+        display: none !important;
+    }
+    #app-sidebar.sidebar-collapsed .sidebar-logo-container {
+        justify-content: center !important;
+        width: 100% !important;
+    }
+    #app-sidebar.sidebar-collapsed .nav-link-item {
+        justify-content: center !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    #app-sidebar.sidebar-collapsed .nav-link-item i {
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        width: auto !important;
+        text-align: center !important;
+        font-size: 1.125rem !important;
+    }
+    #app-main-content {
+        flex: 1 1 0% !important;
+        width: calc(100% - 16rem) !important;
+        min-width: 0 !important;
+        position: relative !important;
+    }
+    #app-sidebar.sidebar-collapsed + #app-main-content,
+    #app-sidebar.sidebar-collapsed ~ #app-main-content {
+        width: calc(100% - 5rem) !important;
+    }
+}
+
+#desktop-nav-container,
+#mobile-nav-drawer,
+#mobile-nav-container {
+    overflow-x: hidden !important;
+}
+
+/* --------------------------------------------------------------------------
+   8. COMPONENT POLISH & TOUCH TARGETS
+   -------------------------------------------------------------------------- */
+button, .btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    line-height: 1.25rem;
+}
+button:active, .btn:active {
+    transform: scale(0.98);
+}
+button i, .btn i, a i, label i, .badge i, th i, td i, .nav-link-item i {
+    margin-right: 0.4rem;
+    flex-shrink: 0;
+}
+button i:only-child, .btn i:only-child, a i:only-child {
+    margin-right: 0 !important;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin-bottom: 1rem;
+}
+.form-group label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+}
+
+/* Sidebar Collapsed Rail Tooltip */
+.sidebar-tooltip {
+    position: absolute;
+    left: 100%;
+    margin-left: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    background-color: #0f172a;
+    color: #f8fafc;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.375rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.95) translateX(-5px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+#app-sidebar.sidebar-collapsed .group:hover .sidebar-tooltip {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+}

@@ -4,6 +4,600 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-slate-950: #060a13;
+}
+
+body {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f8fafc;
+    color: #0f172a;
+    min-height: 100vh;
+}
+.glass-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
+.glass-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease-in-out;
+}
+.glass-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(226, 232, 240, 0.5);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.4);
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.6);
+}
+input, select, textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: #6366f1 !important;
+}
+
+/* Hide scrollbar utility class */
+.scrollbar-none::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-none {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Light Mode overrides */
+body.light-mode {
+    background-color: #f8fafc;
+    color: #0f172a;
+}
+body.light-mode header#nav-header,
+body.light-mode .glass-panel,
+body.light-mode .glass-card {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
+}
+body.light-mode .text-slate-100,
+body.light-mode .text-slate-200,
+body.light-mode .text-slate-300,
+body.light-mode .text-slate-400 {
+    color: #334155 !important;
+}
+body.light-mode .text-slate-500,
+body.light-mode .text-slate-600 {
+    color: #64748b !important;
+}
+body.light-mode .bg-slate-950,
+body.light-mode .bg-slate-900,
+body.light-mode .bg-slate-800,
+body.light-mode .bg-slate-900\/90,
+body.light-mode .bg-slate-900\/80,
+body.light-mode .bg-slate-900\/70,
+body.light-mode .bg-slate-900\/60,
+body.light-mode .bg-slate-900\/50,
+body.light-mode .bg-slate-900\/40,
+body.light-mode .bg-slate-900\/30,
+body.light-mode .bg-slate-900\/20,
+body.light-mode .bg-slate-950\/90,
+body.light-mode .bg-slate-950\/80,
+body.light-mode .bg-slate-950\/70,
+body.light-mode .bg-slate-950\/60,
+body.light-mode .bg-slate-950\/50,
+body.light-mode .bg-slate-950\/40,
+body.light-mode .bg-slate-950\/20 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+/* Modal Overlay & Glass Card in Light Mode */
+body.light-mode .fixed.bg-slate-950\/80,
+body.light-mode #global-dynamic-modal,
+body.light-mode #global-inventory-csv-modal,
+body.light-mode #super-admin-add-inventory-modal,
+body.light-mode #shop-admin-edit-inventory-modal {
+    background-color: rgba(15, 23, 42, 0.45) !important;
+    backdrop-filter: blur(8px) !important;
+}
+body.light-mode #global-dynamic-modal .glass-panel,
+body.light-mode #global-inventory-csv-modal .glass-panel,
+body.light-mode #super-admin-add-inventory-modal .glass-panel,
+body.light-mode #shop-admin-edit-inventory-modal .glass-panel {
+    background: #ffffff !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(203, 213, 225, 0.9) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+}
+body.light-mode .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #1e293b !important;
+}
+body.light-mode .bg-slate-100 span {
+    color: #0f172a !important;
+}
+body.light-mode .border-slate-800,
+body.light-mode .border-slate-900,
+body.light-mode .border-slate-700,
+body.light-mode .border-slate-800\/80,
+body.light-mode .border-slate-800\/60,
+body.light-mode .border-slate-800\/50,
+body.light-mode .border-slate-800\/40 {
+    border-color: #cbd5e1 !important;
+}
+body.light-mode .divide-slate-800\/80 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/60 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/50 > :not([hidden]) ~ :not([hidden]),
+body.light-mode .divide-slate-800\/40 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #e2e8f0 !important;
+}
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+}
+body.light-mode input:focus,
+body.light-mode select:focus,
+body.light-mode textarea:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
+}
+body.light-mode .bg-blue-600\/10 {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+body.light-mode table thead tr {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+}
+body.light-mode table tbody tr:hover {
+    background-color: #f1f5f9 !important;
+}
+body.light-mode label {
+    color: #334155 !important;
+}
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode h5,
+body.light-mode h6 {
+    color: #0f172a !important;
+}
+body.light-mode .hover\:bg-slate-800:hover,
+body.light-mode .hover\:bg-slate-900:hover,
+body.light-mode .hover\:bg-slate-950:hover,
+body.light-mode .hover\:bg-slate-900\/80:hover,
+body.light-mode .hover\:bg-slate-900\/60:hover,
+body.light-mode .hover\:bg-slate-900\/40:hover,
+body.light-mode .hover\:bg-slate-900\/20:hover,
+body.light-mode .hover\:bg-slate-800\/80:hover,
+body.light-mode .hover\:bg-slate-800\/60:hover,
+body.light-mode .hover\:bg-slate-800\/40:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+body.light-mode .hover\:bg-blue-600\/20:hover,
+body.light-mode .hover\:bg-blue-600\/10:hover {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+}
+body.light-mode .group:hover .group-hover\:bg-slate-700\/50,
+body.light-mode .group:hover .group-hover\:border-blue-500\/50 {
+    background-color: #e0f2fe !important;
+    border-color: #38bdf8 !important;
+}
+/* Accent Text Colors Contrast in Light Mode */
+body.light-mode .text-cyan-400 {
+    color: #0891b2 !important;
+}
+body.light-mode .text-amber-400 {
+    color: #d97706 !important;
+}
+body.light-mode .text-emerald-400 {
+    color: #059669 !important;
+}
+body.light-mode .text-blue-400 {
+    color: #2563eb !important;
+}
+/* Grand Total Gradient Banner in Light Mode */
+body.light-mode .from-emerald-950\/40 {
+    --tw-gradient-from: #ecfdf5 !important;
+    --tw-gradient-to: rgb(236 253 245 / 0) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+body.light-mode .via-slate-900 {
+    --tw-gradient-to: #f8fafc !important;
+}
+body.light-mode .to-slate-950 {
+    --tw-gradient-to: #ffffff !important;
+}
+/* Role Badges & Job ID Box light mode high contrast overrides */
+body.light-mode .bg-blue-950\/40,
+body.light-mode .bg-blue-950\/30,
+body.light-mode .bg-blue-950\/20,
+body.light-mode .bg-blue-950\/10 {
+    background-color: #dbeafe !important;
+    color: #1d4ed8 !important;
+    border-color: #93c5fd !important;
+}
+body.light-mode .border-blue-800\/40,
+body.light-mode .border-blue-800\/50,
+body.light-mode .border-blue-800\/60,
+body.light-mode .border-blue-500\/30,
+body.light-mode .border-blue-500\/20 {
+    border-color: #93c5fd !important;
+}
+body.light-mode .bg-blue-600\/20,
+body.light-mode .bg-blue-600\/10 {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+body.light-mode .bg-cyan-950\/40,
+body.light-mode .bg-cyan-950\/20 {
+    background-color: #cffafe !important;
+    color: #0e7490 !important;
+    border-color: #67e8f9 !important;
+}
+body.light-mode .bg-amber-950\/40,
+body.light-mode .bg-amber-950\/20 {
+    background-color: #fef3c7 !important;
+    color: #b45309 !important;
+    border-color: #fcd34d !important;
+}
+body.light-mode .bg-violet-950 {
+    background-color: #3b0764 !important;
+    color: #f3e8ff !important;
+    border-color: #6d28d9 !important;
+}
+body.light-mode .bg-emerald-950 {
+    background-color: #064e3b !important;
+    color: #ecfdf5 !important;
+    border-color: #047857 !important;
+}
+body.light-mode .bg-blue-950 {
+    background-color: #1e3a8a !important;
+    color: #eff6ff !important;
+    border-color: #1d4ed8 !important;
+}
+body.light-mode .custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+body.light-mode .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+}
+body.light-mode .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Pagination Light Mode High-Contrast Rules */
+body.light-mode .pagination-container {
+    background-color: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+}
+
+body.light-mode .pagination-container select,
+body.light-mode .pagination-container input {
+    background-color: #f1f5f9 !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+}
+
+body.light-mode .pagination-container button {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+body.light-mode .pagination-container button[disabled] {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important;
+    border-color: #e2e8f0 !important;
+}
+
+body.light-mode .pagination-container button:not([disabled]):hover {
+    background-color: #cbd5e1 !important;
+    color: #0284c7 !important;
+}
+
+body.light-mode .pagination-container span.bg-blue-600\/20 {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #7dd3fc !important;
+}
+
+/* Responsive Table Layout & Desktop Column Width Inheritance */
+.overflow-x-auto {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+.overflow-x-auto table,
+table {
+    width: 100%;
+    min-width: max-content !important;
+    border-collapse: collapse;
+}
+
+.overflow-x-auto th,
+.overflow-x-auto td {
+    white-space: nowrap;
+}
+
+/* Allow descriptive notes cells with custom max-width to wrap cleanly while preserving minimum column width */
+.overflow-x-auto th.wrap-cell,
+.overflow-x-auto td.wrap-cell {
+    white-space: normal;
+}
+
+@media (max-width: 1024px) {
+    .overflow-x-auto table,
+    table {
+        min-width: max-content !important;
+    }
+}
+
+/* Mechanic Intake Light Mode Badge & Buttons */
+body.light-mode #mech-editable-mode-badge {
+    background-color: #dcfce7 !important;
+    border-color: #86efac !important;
+    color: #166534 !important;
+}
+
+body.light-mode #btn-cust-type-external:not(.bg-blue-600),
+body.light-mode #btn-cust-type-internal:not(.bg-blue-600) {
+    color: #475569 !important;
+}
+
+body.light-mode #btn-cust-type-external:not(.bg-blue-600):hover,
+body.light-mode #btn-cust-type-internal:not(.bg-blue-600):hover {
+    color: #0f172a !important;
+    background-color: #e2e8f0 !important;
+}
+
+/* Column Toggle Buttons & Dropdowns Light Mode Overrides */
+body.light-mode #btn-inv-column-toggle,
+body.light-mode #btn-shop-inv-column-toggle,
+body.light-mode #btn-veh-column-toggle,
+body.light-mode #btn-records-column-toggle,
+body.light-mode #btn-cust-column-toggle {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+}
+
+body.light-mode #btn-inv-column-toggle:hover,
+body.light-mode #btn-shop-inv-column-toggle:hover,
+body.light-mode #btn-veh-column-toggle:hover,
+body.light-mode #btn-records-column-toggle:hover,
+body.light-mode #btn-cust-column-toggle:hover {
+    background-color: #f1f5f9 !important;
+}
+
+body.light-mode #inv-column-menu,
+body.light-mode #shop-admin-inv-column-menu,
+body.light-mode #veh-column-menu,
+body.light-mode #records-column-menu,
+body.light-mode #cust-column-menu {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+body.light-mode #inv-column-menu label,
+body.light-mode #shop-admin-inv-column-menu label,
+body.light-mode #veh-column-menu label,
+body.light-mode #records-column-menu label,
+body.light-mode #cust-column-menu label {
+    color: #334155 !important;
+}
+
+body.light-mode #inv-column-menu label:hover,
+body.light-mode #shop-admin-inv-column-menu label:hover,
+body.light-mode #veh-column-menu label:hover,
+body.light-mode #records-column-menu label:hover,
+body.light-mode #cust-column-menu label:hover {
+    color: #0f172a !important;
+}
+
+/* Float all column visibility popovers above table elements */
+#inv-column-menu,
+#shop-admin-inv-column-menu,
+#veh-column-menu,
+#records-column-menu,
+#cust-column-menu {
+    z-index: 9999 !important;
+}
+
+/* Light Mode Input Placeholders & Options */
+body.light-mode input::placeholder,
+body.light-mode textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+body.light-mode option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+body.light-mode #inv-bulk-action-toolbar {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Sidebar Nav Link Styling - Dark Mode Base & Active States */
+.nav-link-item {
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-link-item.active {
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), rgba(37, 99, 235, 0.05)) !important;
+    color: #60a5fa !important;
+    border-left: 3px solid #3b82f6 !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 8px -2px rgba(37, 99, 235, 0.25) !important;
+}
+
+.nav-link-item.active i {
+    color: #60a5fa !important;
+}
+
+/* App Shell Sidebar & Container Bounds */
+#app-shell-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+    position: relative !important;
+}
+
+@media (max-width: 767px) {
+    #app-shell-container {
+        flex-direction: column !important;
+    }
+    #app-sidebar {
+        display: none !important;
+    }
+    #app-main-content {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+
+@media (min-width: 768px) {
+    #app-sidebar {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 16rem !important;
+        min-width: 16rem !important;
+        max-width: 16rem !important;
+        height: 100vh !important;
+        position: sticky !important;
+        top: 0 !important;
+        left: 0 !important;
+        flex-shrink: 0 !important;
+        z-index: 30 !important;
+        align-self: flex-start !important;
+    }
+
+    #app-sidebar.hidden {
+        display: none !important;
+    }
+
+    #app-sidebar.sidebar-collapsed {
+        width: 5rem !important;
+        min-width: 5rem !important;
+        max-width: 5rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    #app-main-content {
+        flex: 1 1 0% !important;
+        width: calc(100% - 16rem) !important;
+        min-width: 0 !important;
+        position: relative !important;
+    }
+
+    #app-sidebar.sidebar-collapsed + #app-main-content,
+    #app-sidebar.sidebar-collapsed ~ #app-main-content {
+        width: calc(100% - 5rem) !important;
+    }
+}
+
+/* Desktop & Mobile Sidebar Navigation Light Mode Overrides */
+body.light-mode #app-sidebar,
+body.light-mode #mobile-nav-drawer {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+}
+
+body.light-mode #app-sidebar .border-b,
+body.light-mode #app-sidebar .border-t,
+body.light-mode #mobile-nav-drawer .border-b {
+    border-color: #e2e8f0 !important;
+}
+
+body.light-mode .sidebar-section-title {
+    color: #64748b !important;
+}
+
+body.light-mode .nav-link-item {
+    color: #334155 !important;
+}
+
+body.light-mode .nav-link-item i {
+    color: #64748b !important;
+}
+
+body.light-mode .nav-link-item:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+body.light-mode .nav-link-item:hover i {
+    color: #2563eb !important;
+}
+
+body.light-mode .nav-link-item.active {
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border-left: 3px solid #2563eb !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12) !important;
+}
+
+body.light-mode .nav-link-item.active i {
+    color: #2563eb !important;
+}
+
+body.light-mode #sidebar-toggle-btn {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-mode #sidebar-toggle-btn:hover {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+}
+
+body.light-mode #mobile-nav-header {
+    background-color: #ffffff !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
 }

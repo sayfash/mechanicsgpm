@@ -10,6 +10,6 @@
     <!-- Shop Admin Workspace -->
     @include('pages.shop-admin.workspace')
 
-    <!-- Super Admin Workspace (inside app-main-content) -->
+    <!-- Super Admin Workspace -->
     @include('pages.super-admin.workspace')
 @endsection
