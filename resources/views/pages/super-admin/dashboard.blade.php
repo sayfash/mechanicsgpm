@@ -1,6 +1,6 @@
 <!-- SUB-TAB: Dashboard Metrics -->
-<div id="super-admin-tab-stats" class="space-y-6 hidden pt-4">
-    <!-- Title Banner -->
+<div id="super-admin-tab-stats" class="space-y-6 hidden pt-6">
+    <!-- Title Banner
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 glass-panel rounded-2xl p-6 shadow-xl">
         <div>
             <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
@@ -8,7 +8,7 @@
             </h3>
             <p class="text-sm text-slate-400 mt-1">High-level analytics, active repairs, branch metrics, and low-inventory telemetry.</p>
         </div>
-    </div>
+    </div>  -->
 
     <!-- Stat Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

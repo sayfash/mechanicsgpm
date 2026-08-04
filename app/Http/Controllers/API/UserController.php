@@ -13,7 +13,10 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $users = User::with('branch')->orderBy('username', 'asc')->get();
+        $users = User::with('branch')->orderBy('username', 'asc')->get()->map(function ($u) {
+            $u->branch_name = $u->branch ? $u->branch->name : null;
+            return $u;
+        });
         return response()->json($users);
     }
 
@@ -57,9 +60,10 @@ class UserController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
+            'username' => 'nullable|string|max:50',
             'display_name' => 'nullable|string|max:100',
             'role' => 'nullable|in:super_admin,shop_admin,mechanic',
-            'branch_id' => 'nullable|exists:branches,id',
+            'branch_id' => 'nullable',
             'password' => 'nullable|string|min:6',
         ]);
 
@@ -68,13 +72,22 @@ class UserController extends Controller
 
         DB::beginTransaction();
         try {
-            $data = [
-                'display_name' => $request->display_name ?? $user->display_name,
-                'role' => $request->role ?? $user->role,
-                'branch_id' => $request->branch_id ?? $user->branch_id,
-            ];
+            $data = [];
 
-            if ($request->password) {
+            if ($request->has('username') && !empty($request->username)) {
+                $data['username'] = $request->username;
+            }
+            if ($request->has('display_name')) {
+                $data['display_name'] = $request->display_name ?? $request->username ?? $user->display_name;
+            }
+            if ($request->has('role') && !empty($request->role)) {
+                $data['role'] = $request->role;
+            }
+            if ($request->exists('branch_id')) {
+                $data['branch_id'] = $request->branch_id ? (int)$request->branch_id : null;
+            }
+
+            if ($request->filled('password')) {
                 $data['password_hash'] = Hash::make($request->password);
             }
 
@@ -86,14 +99,14 @@ class UserController extends Controller
                 'target_table' => 'users',
                 'record_id' => $user->id,
                 'old_value' => $oldValue,
-                'new_value' => $user->toArray(),
+                'new_value' => $user->fresh()->toArray(),
             ]);
 
             DB::commit();
             return response()->json(['message' => 'User updated successfully.']);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to update user.'], 500);
+            return response()->json(['error' => 'Failed to update user: ' . $e->getMessage()], 500);
         }
     }
 

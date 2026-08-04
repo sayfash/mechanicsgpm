@@ -1,7 +1,7 @@
 <!-- ========================================== -->
 <!-- MODULE: SUPER ADMIN WORKSPACE              -->
-<!-- MODULE: SUPER ADMIN WORKSPACE (FONT SANS UPDATED) -->
-<section id="super-admin-workspace" class="w-full hidden space-y-6">
+<!-- MODULE: SUPER ADMIN WORKSPACE (ROLE ZERO TOP GAP UPDATED) -->
+<section id="super-admin-workspace" class="w-full hidden space-y-6 mt-0 pt-0">
 
     <!-- Sub-Tab: Dashboard Metrics -->
     @include('pages.super-admin.dashboard')

@@ -241,11 +241,14 @@ async function request(action, params = {}, method = 'POST') {
 }
 
 async function requestFormData(formData) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
     const options = {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'same-origin',
+        ...(csrfToken ? { headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } } : { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
     };
-    return fetch('/api/legacy', options).then(r => handleFetchResponse(r));
+    return fetch('/api/update-profile', options).then(r => handleFetchResponse(r));
 }
 
 async function handleFetchResponse(response) {
@@ -253,7 +256,9 @@ async function handleFetchResponse(response) {
     try {
         data = await response.json();
     } catch (e) {
-        throw new Error('Server returned an unreadable response.');
+        // Fallback: try to get raw text for debugging
+        const txt = await response.text();
+        throw new Error('Server returned unreadable response: ' + txt);
     }
 
     if (!response.ok) {
@@ -535,8 +540,77 @@ window.toggleDesktopSidebar = toggleDesktopSidebar;
 window.openMobileDrawer = openMobileDrawer;
 window.closeMobileDrawer = closeMobileDrawer;
 window.toggleMobileDrawer = toggleMobileDrawer;
+
+// Mechanic Check-In (no changes needed)
+window.handleMechanicCheckin = async function () {
+    const select = document.getElementById('mechanic-branch-select');
+    const branchId = select ? select.value : null;
+    if (!branchId) {
+        showToast('Please select a branch to check in.', 'error');
+        return;
+    }
+    try {
+        const data = await request('mechanic_check_in', { branch_id: branchId });
+        // Update UI
+        const banner = document.getElementById('mechanic-checkin-banner');
+        if (banner) banner.classList.add('hidden');
+        const activeBanner = document.getElementById('mechanic-active-banner');
+        if (activeBanner) {
+            activeBanner.classList.remove('hidden');
+            const nameEl = document.getElementById('mechanic-active-branch-name');
+            if (nameEl) nameEl.innerText = data.branch_name || (select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '');
+        }
+        // Store branch in AppStore for later use
+        if (AppStore.user) AppStore.user.branch_id = parseInt(branchId);
+        showToast('Checked in to branch successfully.', 'success');
+    } catch (err) {
+        showToast(err.message || 'Check-in failed.', 'error');
+    }
+};
+
+// Submit Mechanic Job Record (handled in module below)
 window.setActiveNavRoute = setActiveNavRoute;
 window.onNavRouteClick = onNavRouteClick;
+
+// Helper to warn on tab/window close
+function handleBeforeUnload(e) {
+    e.preventDefault();
+    e.returnValue = '';
+}
+
+// Draft persistence for mechanic form
+function saveMechanicDraft() {
+    if (!AppStore.mechanicInProgress) return;
+    const draft = {};
+    const fields = document.querySelectorAll('#mechanic-workspace input, #mechanic-workspace select, #mechanic-workspace textarea');
+    fields.forEach(el => {
+        if (el.id) draft[el.id] = el.value;
+    });
+    localStorage.setItem('mechanicDraft', JSON.stringify(draft));
+}
+
+function loadMechanicDraft() {
+    const draftStr = localStorage.getItem('mechanicDraft');
+    if (!draftStr) return;
+    try {
+        const draft = JSON.parse(draftStr);
+        Object.entries(draft).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        });
+    } catch (e) {
+        console.error('Failed to load mechanic draft', e);
+    }
+}
+
+// Attach input listeners after DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    const workspace = document.getElementById('mechanic-workspace');
+    if (workspace) {
+        workspace.addEventListener('input', saveMechanicDraft);
+    }
+});
+
 window.hasPermission = hasPermission;
 window.renderRoleBasedNavigation = renderRoleBasedNavigation;
 window.canUserAccessRoute = canUserAccessRoute;
@@ -807,9 +881,13 @@ function onNavRouteClick(e, routeId) {
         return;
     }
 
-    // Persist last route for session restoration across refreshes
-    localStorage.setItem('sgpm_last_route', routeId);
+    // Prevent navigation while mechanic is fixing
+    if (AppStore.mechanicInProgress) {
+        showToast('Repair in progress. Please submit before navigating.', 'warning');
+        return;
+    }
 
+    localStorage.setItem('sgpm_last_route', routeId);
     setActiveNavRoute(routeId);
     closeMobileDrawer();
 
@@ -885,7 +963,13 @@ function showSection(sectionId) {
             topAppBar.classList.remove('md:flex');
         }
     } else {
-        if (main) main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 py-6 overflow-y-auto block";
+        if (main) {
+            if (['super-admin-workspace', 'shop-admin-workspace', 'mechanic-workspace'].includes(sectionId)) {
+                main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 pt-0 pb-6 overflow-y-auto block";
+            } else {
+                main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 py-6 overflow-y-auto block";
+            }
+        }
         if (sidebar) {
             sidebar.classList.remove('hidden');
             sidebar.classList.add('md:flex');
@@ -1016,6 +1100,9 @@ async function loadMechanicDashboard() {
         await fetchDynamicChecklists();
     }
 
+    // Load any persisted draft data
+    loadMechanicDraft();
+
     // Initialize active tab
     setMechanicTab(AppStore.mechanicActiveTab || 'form');
 }
@@ -1037,6 +1124,14 @@ async function handleMechanicCheckin() {
 }
 
 function changeBranch() {
+    if (AppStore.mechanicInProgress) {
+        const proceed = confirm('Changing branch will delete unsaved data. Continue?');
+        if (!proceed) return;
+        // Reset mechanic state
+        AppStore.mechanicInProgress = false;
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        localStorage.removeItem('mechanicDraft');
+    }
     AppStore.user.branch_id = null;
     loadMechanicDashboard();
 }
@@ -1595,11 +1690,11 @@ function updateMechanicCustomerFieldsState() {
         if (el) {
             el.disabled = !editable;
             if (editable) {
-                el.classList.remove('bg-slate-900/60', 'text-slate-400', 'cursor-not-allowed');
-                el.classList.add('bg-slate-950', 'text-slate-100', 'border-slate-700', 'focus:border-blue-500');
-            } else {
                 el.classList.remove('bg-slate-950', 'text-slate-100', 'border-slate-700', 'focus:border-blue-500');
-                el.classList.add('bg-slate-900/60', 'text-slate-400', 'cursor-not-allowed');
+                el.classList.add('bg-white', 'text-slate-900', 'border-slate-300', 'focus:border-blue-500');
+            } else {
+                el.classList.remove('bg-white', 'text-slate-900', 'border-slate-300', 'focus:border-blue-500');
+                el.classList.add('bg-slate-950', 'text-slate-100', 'border-slate-700', 'cursor-not-allowed');
             }
         }
     });
@@ -1941,6 +2036,10 @@ function getLocalSQLTimestamp(date = new Date()) {
 }
 
 function startMechanicTimerClock() {
+    // Prevent navigation and tab close while fixing
+    AppStore.mechanicInProgress = true;
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
     if (!document.getElementById('mech-selected-vehicle-id').value) {
         showToast('Please search and verify a customer first.', 'warning');
         return;
@@ -1964,6 +2063,7 @@ function startMechanicTimerClock() {
 
     showToast('Repair clock started.', 'info');
 }
+
 
 function stopMechanicTimerClock() {
     const now = new Date();
@@ -2010,11 +2110,11 @@ function updateTimerDisplay(secs) {
 }
 
 async function submitMechanicJobRecord(event) {
-    event.preventDefault();
+    if (event && event.preventDefault) event.preventDefault();
 
-    const vehicleId = document.getElementById('mech-selected-vehicle-id').value;
-    const km = document.getElementById('mech-km-reached').value;
-    const other = document.getElementById('mech-other-issues').value;
+    const vehicleId = document.getElementById('mech-selected-vehicle-id')?.value || '';
+    const km = document.getElementById('mech-km-reached')?.value || '';
+    const other = document.getElementById('mech-other-issues')?.value || '';
     const customerStatus = document.getElementById('mech-customer-status')?.value || 'Retail';
     const repairCategory = document.getElementById('mech-repair-category')?.value || 'Repair';
 
@@ -2028,6 +2128,12 @@ async function submitMechanicJobRecord(event) {
 
     const checkedFormItems = Array.from(document.querySelectorAll('input[name="mechanic_form_item"]:checked')).map(chk => chk.value);
     const formItemsStr = checkedFormItems.join(', ');
+
+    const partsUsed = (AppStore.mechAccumulatedParts || AppStore.partsUsedAccumulator || []).map(p => ({
+        inventory_id: p.inventory_id,
+        qty: p.qty,
+        is_charged: !!p.is_charged
+    }));
 
     const payload = {
         job_id: jobText || rawJobId,
@@ -2060,21 +2166,23 @@ async function submitMechanicJobRecord(event) {
         })),
         start_time: AppStore.mechStartTime,
         end_time: AppStore.mechStopTime,
-        parts_used: (AppStore.mechAccumulatedParts || []).map(p => ({
-            inventory_id: p.inventory_id,
-            qty: p.qty,
-            is_charged: !!p.is_charged
-        }))
+        parts_used: partsUsed
     };
 
     try {
         const res = await request('submit_mechanic_job', payload);
-        showToast(res.message, 'success');
+        showToast(res.message || 'Job submitted successfully.', 'success');
+        AppStore.mechanicInProgress = false;
+        localStorage.removeItem('mechanicDraft');
         await resetMechanicRepairForm();
+        if (typeof fetchMaintenanceRecords === 'function') {
+            fetchMaintenanceRecords();
+        }
     } catch (err) {
-        showToast(err.message, 'error');
+        showToast(err.message || 'Failed to submit job.', 'error');
     }
 }
+window.submitMechanicJobRecord = submitMechanicJobRecord;
 
 // --- History Review tab functions ---
 async function fetchMechanicHistoryRecords() {
@@ -2360,11 +2468,27 @@ function closeGlobalModal() {
 // Shop Admin Workflows (Spreadsheet ledger)
 // -------------------------------------------------------------
 
+// ✅ FIXED: Clean loadShopAdminDashboard function
 async function loadShopAdminDashboard() {
     try {
-        // Set branch text
+        // Set branch badge
         const activeBranch = AppStore.branches.find(b => b.id == AppStore.user.branch_id);
-        document.getElementById('shop-admin-branch-badge').innerText = activeBranch ? activeBranch.name : 'Unassigned';
+        const badgeEl = document.getElementById('shop-admin-branch-badge');
+        const addEl = document.getElementById('shop-admin-add-branch');
+        if (badgeEl) badgeEl.innerText = activeBranch ? activeBranch.name : 'Unassigned';
+        if (addEl) addEl.innerText = activeBranch ? activeBranch.name : '';
+
+        // Populate branch filter dropdown
+        const branchFilter = document.getElementById('shop-admin-branch-filter');
+        if (branchFilter) {
+            branchFilter.innerHTML = `<option value="">All Branches</option>`;
+            (AppStore.branches || []).forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.id;
+                opt.textContent = b.name;
+                branchFilter.appendChild(opt);
+            });
+        }
 
         await fetchShopInventory();
     } catch (err) {
@@ -2372,16 +2496,18 @@ async function loadShopAdminDashboard() {
     }
 }
 
+// FIXED (Triggers pagination immediately on page load)
 function fetchShopInventory() {
-    return request('get_inventory', {}, 'GET').then(data => {
+    return request('get_inventory', { branch_id: AppStore.user?.branch_id }, 'GET').then(data => {
         AppStore.inventory = data;
-        renderShopInventoryTable();
+        filterShopAdminInventory(); // 👈 Calculates pagination and renders both table + pagination bars!
     }).catch(err => {
         showToast(err.message, 'error');
     });
 }
 
 function filterShopAdminInventory() {
+    renderShopInventoryTableHead();
     const searchVal = (document.getElementById('shop-admin-inventory-search')?.value || '').toLowerCase().trim();
     const colField = document.getElementById('shop-admin-inv-column-select')?.value || '';
     const colVal = (document.getElementById('shop-admin-inv-column-val')?.value || '').toLowerCase().trim();
@@ -2406,6 +2532,9 @@ function filterShopAdminInventory() {
                 if (!targetVal.includes(colVal)) return false;
             }
         }
+        // Branch filter
+        const branchFilterVal = document.getElementById('shop-admin-branch-filter')?.value || '';
+        if (branchFilterVal && String(item.branch_id) !== branchFilterVal) return false;
         return true;
     });
 
@@ -2478,7 +2607,7 @@ async function setShopAdminTab(tabName) {
     if (tabName === 'inventory') {
         if (panelInv) panelInv.classList.remove('hidden');
         if (btnInv) btnInv.className = "px-4 py-2 font-bold text-xs rounded-lg transition duration-200 bg-blue-600/10 text-blue-400 border border-blue-500/20";
-        await fetchShopInventory();
+        await loadShopAdminDashboard();
     } else if (tabName === 'history') {
         if (panelHist) panelHist.classList.remove('hidden');
         if (btnHist) btnHist.className = "px-4 py-2 font-bold text-xs rounded-lg transition duration-200 bg-cyan-600/10 text-cyan-400 border border-cyan-500/20";
@@ -2843,28 +2972,28 @@ function renderShopInventoryTableHead() {
     let ths = '';
 
     if (cols.sku) {
-        ths += `<th onclick="toggleSortShopInventory('sku')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[13%] cursor-pointer select-none hover:text-blue-400 transition text-center">SKU <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('sku')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">SKU <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.part_name) {
-        ths += `<th onclick="toggleSortShopInventory('part_name')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[22%] cursor-pointer select-none hover:text-blue-400 transition text-center">Part Name <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('part_name')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">Part Name <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.description) {
-        ths += `<th class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[25%] text-center">Description</th>`;
+        ths += `<th class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap text-center">Description</th>`;
     }
     if (cols.category) {
-        ths += `<th onclick="toggleSortShopInventory('category')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[12%] cursor-pointer select-none hover:text-blue-400 transition text-center">Category <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('category')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">Category <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.available_qty) {
-        ths += `<th onclick="toggleSortShopInventory('available_qty')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[9%] cursor-pointer select-none hover:text-blue-400 transition text-center">Available Qty <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('available_qty')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">Available Qty <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.price) {
-        ths += `<th onclick="toggleSortShopInventory('price')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[11%] cursor-pointer select-none hover:text-blue-400 transition text-center">Price (IDR) <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('price')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">Price (IDR) <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.updated_at) {
-        ths += `<th onclick="toggleSortShopInventory('updated_at')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[8%] cursor-pointer select-none hover:text-blue-400 transition text-center">Last Updated <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
+        ths += `<th onclick="toggleSortShopInventory('updated_at')" class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap cursor-pointer select-none hover:text-blue-400 transition text-center">Last Updated <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i></th>`;
     }
     if (cols.actions) {
-        ths += `<th class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[8%] text-center">Actions</th>`;
+        ths += `<th class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap text-center">Actions</th>`;
     }
 
     tr.innerHTML = ths;
@@ -2873,7 +3002,10 @@ function renderShopInventoryTableHead() {
 function renderShopInventoryTable(itemsToRender = null) {
     const tbody = document.getElementById('shop-admin-inventory-tbody');
     if (!tbody) return;
-    const items = itemsToRender !== null ? itemsToRender : (AppStore.inventory || []);
+    const allItems = itemsToRender !== null ? itemsToRender : (AppStore.inventory || []);
+    // Filter items to the current user's branch
+    const currentBranchId = AppStore.user?.branch_id;
+    const items = currentBranchId ? allItems.filter(item => item.branch_id == currentBranchId) : allItems;
 
     const cols = AppStore.shopInvColumnVisibility || defaultShopInvCols;
     const visibleColCount = Object.values(cols).filter(Boolean).length || 1;
@@ -3063,7 +3195,7 @@ async function handleSubmitShopAdminEditInventory(e) {
         if (AppStore.user && AppStore.user.role === 'super_admin') {
             await fetchGlobalInventory();
         } else {
-            await fetchShopInventory();
+            await loadShopAdminDashboard();
         }
     } catch (err) {
         showToast(err.message, 'error');
@@ -3549,6 +3681,7 @@ function openRecordDetailsModal(recordId) {
     }
 
     document.getElementById('record-detail-title').innerText = `Maintenance Record: ${formatJobCode(m.id, m.created_at)}`;
+    document.getElementById('record-detail-title').dataset.id = m.id;
     document.getElementById('record-detail-subtitle').innerText = `Logged on ${new Date(m.created_at).toLocaleString()}`;
 
     const vinVal = m.vin || m.frame_number || 'N/A';
@@ -3953,7 +4086,7 @@ function renderEditModalParts() {
     }
     container.innerHTML = parts.map(p => `
                 <div class="flex items-center justify-between p-2 bg-slate-900 border border-slate-800/80 rounded mb-1">
-                    <span class="text-slate-300 text-[11px]">${p.part_name} (${p.sku})</span>
+                    <span class="text-slate-300 text-[11px]">${p.part_name} (${p.sku}) - ${p.branch}</span>
                     <div class="flex items-center gap-3">
                         <span class="font-bold text-slate-200">Qty: ${p.qty}</span>
                         <button type="button" onclick="removePartFromEditModalAccumulator(${p.inventory_id})" class="text-rose-500 hover:text-rose-400 font-bold">Remove</button>
@@ -3980,6 +4113,7 @@ window.addPartToEditModalAccumulator = function () {
     const selectedOpt = select.options[select.selectedIndex];
     const name = selectedOpt.getAttribute('data-name');
     const sku = selectedOpt.getAttribute('data-sku');
+    const branch = selectedOpt.getAttribute('data-branch');
 
     const existing = AppStore.editModalPartsUsed.find(p => p.inventory_id == partId);
     if (existing) {
@@ -3989,6 +4123,7 @@ window.addPartToEditModalAccumulator = function () {
             inventory_id: partId,
             part_name: name,
             sku: sku,
+            branch: branch,
             qty: qty
         });
     }
@@ -4016,6 +4151,7 @@ async function openEditMaintenanceRecordModal(recordId) {
             inventory_id: p.inventory_id,
             part_name: p.part_name,
             sku: p.sku,
+            branch: p.branch_name,
             qty: p.quantity_used
         })) || [];
 
@@ -4049,7 +4185,7 @@ async function openEditMaintenanceRecordModal(recordId) {
         const branchesOptions = AppStore.branches.map(b => `<option value="${b.id}" ${b.id == r.branch_id ? 'selected' : ''}>${b.name}</option>`).join('');
 
         const partsSelectOptions = `<option value="">-- Choose Sparepart to Add --</option>` +
-            inventory.map(p => `<option value="${p.id}" data-name="${p.part_name}" data-sku="${p.sku}">[Branch: ${p.branch_name}] ${p.part_name} (${p.sku})</option>`).join('');
+            inventory.map(p => `<option value="${p.id}" data-name="${p.part_name}" data-sku="${p.sku}" data-branch="${p.branch_name}">[Branch: ${p.branch_name}] ${p.part_name} (${p.sku})</option>`).join('');
 
         const html = `
                     <form id="edit-maintenance-record-form" onsubmit="submitEditMaintenanceRecord(event, ${recordId})" class="space-y-4 text-xs font-semibold text-slate-300 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -4219,6 +4355,47 @@ async function submitEditMaintenanceRecord(event, recordId) {
         showToast(err.message, 'error');
     }
 }
+
+// ------------------------------------------------
+// Print Maintenance Record Details
+// ------------------------------------------------
+function printMaintenanceRecord() {
+    try {
+        // The numeric PK is stored on the modal title (data‑id)
+        const titleEl = document.getElementById('record-detail-title');
+        const recordId = titleEl ? titleEl.getAttribute('data-id') : null;
+
+        if (!recordId) {
+            showToast('Record ID not found – cannot print.', 'error');
+            return;
+        }
+
+        // Build the full API URL (same base as other API calls)
+        const apiUrl = `/api/print-maintenance-record?record_id=${encodeURIComponent(recordId)}`;
+
+        // Open the URL in a new tab but include auth headers.
+        // We achieve this by making a temporary fetch that returns a URL
+        // to a printable view (the controller renders a Blade view, so
+        // the response is HTML). The fetch is done with the same token
+        // you use for other AJAX calls, then we write the response
+        // into a new window.
+        request('get', apiUrl)          // <-- reuse your generic request wrapper
+            .then(res => {
+                // The controller returns a Blade view that auto‑calls window.print()
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(res);
+                printWindow.document.close();
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Failed to open print view.', 'error');
+            });
+    } catch (e) {
+        console.error(e);
+        showToast('Failed to open print view.', 'error');
+    }
+}
+
 
 function deleteMaintenanceRecord(recordId) {
     showConfirmDeleteModal({
@@ -4883,6 +5060,18 @@ window.openEditVehicleModal = openEditVehicleModal;
 window.closeEditVehicleModal = closeEditVehicleModal;
 window.handleEditVehicleSubmit = handleEditVehicleSubmit;
 
+
+
+
+window.printMaintenanceRecord = function(recordId) {
+    // Open printable view in a new tab
+    const url = `/print-maintenance-record?job_id=${encodeURIComponent(recordId)}`;
+    window.open(url, '_blank');
+};
+
+
+
+
 async function handleSubmitAddCustomer(e) {
     if (e && e.preventDefault) e.preventDefault();
     const custId = document.getElementById('add-cust-id')?.value.trim();
@@ -4905,7 +5094,7 @@ async function handleSubmitAddCustomer(e) {
         });
         showToast(res.message, 'success');
         if (typeof closeAddCustomerModal === 'function') closeAddCustomerModal();
-        
+
         if (document.getElementById('add-cust-id')) document.getElementById('add-cust-id').value = '';
         if (document.getElementById('add-cust-name')) document.getElementById('add-cust-name').value = '';
         if (document.getElementById('add-cust-phone')) document.getElementById('add-cust-phone').value = '';
@@ -6055,6 +6244,60 @@ try {
 if (savedInvCols) {
     AppStore.invColumnVisibility = savedInvCols;
 }
+
+// Save draft inputs regularly
+function saveMechanicDraft() {
+    const draft = {
+        vehicleId: document.getElementById('mech-selected-vehicle-id')?.value || null,
+        repairCategory: document.getElementById('mech-repair-category')?.value || null,
+        kmReached: document.getElementById('mech-km-reached')?.value || null,
+        otherIssues: document.getElementById('mech-other-issues')?.value || null,
+        commonIssues: Array.from(document.querySelectorAll('#mech-common-issues-container input[type=checkbox]:checked')).map(cb => cb.value),
+        partsUsed: AppStore.partsUsedAccumulator || []
+    };
+    localStorage.setItem('mechanicDraft', JSON.stringify(draft));
+}
+
+function loadMechanicDraft() {
+    const raw = localStorage.getItem('mechanicDraft');
+    if (!raw) return;
+    try {
+        const draft = JSON.parse(raw);
+        if (draft.vehicleId) document.getElementById('mech-selected-vehicle-id').value = draft.vehicleId;
+        if (draft.repairCategory) document.getElementById('mech-repair-category').value = draft.repairCategory;
+        if (draft.kmReached) document.getElementById('mech-km-reached').value = draft.kmReached;
+        if (draft.otherIssues) document.getElementById('mech-other-issues').value = draft.otherIssues;
+        if (draft.commonIssues && Array.isArray(draft.commonIssues)) {
+            draft.commonIssues.forEach(val => {
+                const cb = document.querySelector(`#mech-common-issues-container input[value="${val}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        if (draft.partsUsed && Array.isArray(draft.partsUsed)) {
+            AppStore.partsUsedAccumulator = draft.partsUsed;
+            // Re‑render parts table if needed
+            renderMechanicPartsAccumulator();
+        }
+    } catch (e) { console.error('Failed to load mechanic draft', e); }
+}
+
+// Hook draft saving to relevant input events
+function attachMechanicDraftListeners() {
+    const inputs = ['mech-repair-category', 'mech-km-reached', 'mech-other-issues'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', saveMechanicDraft);
+    });
+    const checks = document.querySelectorAll('#mech-common-issues-container input[type=checkbox]');
+    checks.forEach(cb => cb.addEventListener('change', saveMechanicDraft));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (AppStore.user?.role === 'mechanic') {
+        loadMechanicDraft();
+        attachMechanicDraftListeners();
+    }
+});
 
 function saveInvColumnVisibility() {
     try {
@@ -7615,12 +7858,14 @@ async function fetchManagementUsers() {
             return;
         }
 
-        tbody.innerHTML = data.map(u => `
+        tbody.innerHTML = data.map(u => {
+            const branchName = u.branch_name || u.branch?.name;
+            return `
                     <tr class="hover:bg-slate-900/30 border-b border-slate-800/40 text-center">
                         <td class="p-3 font-mono text-center">${u.id}</td>
                         <td class="p-3 font-bold text-slate-200 text-center">${escapeHtml(u.username)}</td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 border border-slate-800">${u.role.toUpperCase()}</span></td>
-                        <td class="p-3 text-slate-400 font-semibold text-center">${escapeHtml(u.branch_name) || '<span class="text-slate-600">None (Full Access)</span>'}</td>
+                        <td class="p-3 text-slate-400 font-semibold text-center">${branchName ? escapeHtml(branchName) : '<span class="text-slate-600">None (Full Access)</span>'}</td>
                         <td class="p-3 text-center">
                             <div class="flex items-center justify-center gap-1.5">
                                 <button onclick="openEditUserModal(${u.id})" class="px-2 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 rounded font-bold transition">
@@ -7634,7 +7879,8 @@ async function fetchManagementUsers() {
                             </div>
                         </td>
                     </tr>
-                `).join('');
+                `;
+        }).join('');
     } catch (err) {
         showToast(err.message, 'error');
     }
@@ -7821,9 +8067,10 @@ function openEditUserModal(userId) {
     const u = (AppStore.managementUsers || []).find(item => item.id == userId);
     if (!u) return;
 
-    const branchOptions = AppStore.branches.map(b => {
-        const selected = b.id == u.branch_id ? 'selected' : '';
-        return `<option value="${b.id}" ${selected}>${b.name}</option>`;
+    const currentBranchId = u.branch_id ?? u.branch?.id;
+    const branchOptions = (AppStore.branches || []).map(b => {
+        const selected = b.id == currentBranchId ? 'selected' : '';
+        return `<option value="${b.id}" ${selected}>${escapeHtml(b.name)}</option>`;
     }).join('');
 
     const html = `
@@ -7919,6 +8166,53 @@ function deleteUserAccount(id, username) {
         }
     });
 }
+
+// --- User Edit Modal ---
+function openEditUserModal(id) {
+    const user = (AppStore.managementUsers || []).find(u => u.id == id);
+    if (!user) return;
+    const branchOptions = (AppStore.branches || []).map(b => {
+        const selected = b.id == user.branch_id ? 'selected' : '';
+        return `<option value="${b.id}" ${selected}>${escapeHtml(b.name)}</option>`;
+    }).join('');
+    const html = `
+        <form onsubmit="submitEditUser(event, ${id})" class="space-y-4 text-xs font-semibold text-slate-300">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Username</label>
+                    <input type="text" id="mgt-user-username" required value="${escapeHtml(user.username)}" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm focus:border-blue-500 focus:outline-none text-slate-200" />
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Role Type</label>
+                    <select id="mgt-user-role" required class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm focus:border-blue-500 focus:outline-none text-slate-200">
+                        <option value="mechanic" ${user.role === 'mechanic' ? 'selected' : ''}>Mechanic</option>
+                        <option value="shop_admin" ${user.role === 'shop_admin' ? 'selected' : ''}>Shop Admin</option>
+                        <option value="super_admin" ${user.role === 'super_admin' ? 'selected' : ''}>Super Admin</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Branch Association</label>
+                <select id="mgt-user-branch" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm focus:border-blue-500 focus:outline-none text-slate-200">
+                    <option value="" ${user.branch_id ? '' : 'selected'}>No Branch Association (Super Admin Only)</option>
+                    ${branchOptions}
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] uppercase font-bold text-slate-500 mb-1">Change Password (Leave blank to keep current)</label>
+                <input type="password" id="mgt-user-password" class="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-sm focus:border-blue-500 focus:outline-none text-slate-200" placeholder="••••••••" />
+            </div>
+            <div class="flex items-center justify-between pt-4 border-t border-slate-900 mt-6">
+                <div>
+                    <button type="button" onclick="closeGlobalModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 text-sm font-bold rounded-lg">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold rounded-lg">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    `;
+    openGlobalModal(`Edit User Account: ${escapeHtml(user.username)}`, html);
+}
+
 
 // --- Inventory Modals ---
 function openAddInventoryItemModal() {

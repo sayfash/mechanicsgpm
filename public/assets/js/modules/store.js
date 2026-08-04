@@ -80,6 +80,7 @@ const AppStore = {
     selectedIntakeVehicle: null,
     selectedStopRecordId: null,
     partsUsedAccumulator: [],
+    mechanicInProgress: false,
     superAdminActiveTab: 'stats',
     chartInstance: null,
     invColumnVisibility: { ...defaultInvCols },
@@ -528,3 +529,14 @@ function toggleThemeMode(e) {
     }
 }
 window.toggleThemeMode = toggleThemeMode;
+
+function showToast(message, type = 'success', duration = 4000) {
+    const toastEl = document.getElementById('toast');
+    // Guard against missing element
+    if (!toastEl) return;   // <-- new line
+
+    toastEl.className = `toast toast-${type}`;
+    toastEl.innerText = message;
+    toastEl.style.display = 'block';
+    setTimeout(() => toastEl.style.display = 'none', duration);
+}

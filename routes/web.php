@@ -82,6 +82,8 @@ Route::prefix('api')->group(function () {
         Route::put('/maintenance-records', [\App\Http\Controllers\API\JobController::class, 'editMaintenanceRecord']);
         Route::delete('/maintenance-records', [\App\Http\Controllers\API\JobController::class, 'deleteMaintenanceRecord']);
         Route::post('/maintenance-records/batch', [\App\Http\Controllers\API\JobController::class, 'importRecordsBatch']);
+        // Print Maintenance Record Details (authenticated)
+        Route::get('/print-maintenance-record', [\App\Http\Controllers\API\JobController::class, 'printMaintenanceRecord']);
 
         // Inventory Routes
         Route::get('/inventory', [\App\Http\Controllers\API\InventoryController::class, 'index']);
@@ -97,3 +99,4 @@ Route::prefix('api')->group(function () {
         Route::get('/spare-parts-history', [\App\Http\Controllers\API\InventoryController::class, 'getHistory']);
     });
 });
+Route::middleware('auth:web')->get('/print-maintenance-record', [\App\Http\Controllers\API\JobController::class, 'printMaintenanceRecord']);

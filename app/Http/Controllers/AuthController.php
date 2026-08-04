@@ -72,12 +72,15 @@ class AuthController extends Controller
             return response()->json(['error' => 'Not authenticated.'], 401);
         }
 
+        // Validate inputs, including optional profile picture upload
         $request->validate([
             'new_display_name' => 'required|string|max:100',
             'old_password' => 'nullable|string',
             'new_password' => 'nullable|string|min:6',
+            'profile_picture' => 'nullable|image|max:1024', // max 1MB
         ]);
 
+        // Handle password change if requested
         if ($request->filled('new_password')) {
             if (!Hash::check($request->old_password, $user->password_hash)) {
                 return response()->json(['error' => 'Incorrect old password.'], 400);
@@ -85,13 +88,22 @@ class AuthController extends Controller
             $user->password_hash = Hash::make($request->new_password);
         }
 
+        // Update display name
         $user->display_name = $request->new_display_name;
+
+        // Handle optional profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            // Store the public URL or relative path
+            $user->profile_picture = '/storage/' . $path;
+        }
+
         $user->save();
 
         return response()->json([
             'message' => 'Profile updated successfully.',
             'display_name' => $user->display_name,
-            'profile_picture' => $user->profile_picture
+            'profile_picture' => $user->profile_picture,
         ]);
     }
 

@@ -1,8 +1,8 @@
 <!-- SUB-TAB: Compliance Audit Logs -->
-<div id="super-admin-tab-logs" class="space-y-4 hidden">
+<div id="super-admin-tab-logs" class="space-y-4 hidden mt-0 pt-0">
     <!-- Streamlined Integrated Header & Controls Container -->
     <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl relative z-20 overflow-visible space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-slate-800/60">
             <div>
                 <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-shield-halved text-amber-400"></i> Compliance Audit Logs

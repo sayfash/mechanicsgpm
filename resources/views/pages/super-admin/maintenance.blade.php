@@ -1,5 +1,5 @@
 <!-- SUB-TAB: Detailed Maintenance Records -->
-<div id="super-admin-tab-maintenance" class="space-y-4 hidden">
+<div id="super-admin-tab-maintenance" class="space-y-4 hidden mt-0 pt-0">
     <!-- Streamlined Integrated Header & Controls Container -->
     <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl relative z-20 overflow-visible space-y-4">
         <!-- Top Row: Title, Description & Action Buttons -->

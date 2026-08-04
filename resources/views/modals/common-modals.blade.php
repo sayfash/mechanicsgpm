@@ -70,8 +70,7 @@
 
         <!-- Modal Footer -->
         <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4 mt-4">
-            <button onclick="closeRecordDetailsModal()"
-                class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-lg text-xs transition">Close</button>
+            <button type="button" onclick="printMaintenanceRecord(document.getElementById('record-detail-title').dataset.jobId)" class="px-5 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg">Print</button>
         </div>
     </div>
 </div>

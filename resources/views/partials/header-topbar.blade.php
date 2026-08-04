@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <div class="border-t border-slate-100 dark:border-slate-800 my-1 pt-1"></div>
+            <div class="border-t border-slate-200 dark:border-slate-800 my-1 pt-1"></div>
 
             <!-- Sign Out Button (Left Aligned) -->
             <button type="button" onclick="logout()"

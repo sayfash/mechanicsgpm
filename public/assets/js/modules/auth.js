@@ -194,10 +194,12 @@ async function handleProfileUpdate(e) {
         const res = await requestFormData(formData);
         showToast(res.message, 'success');
 
+        // Update frontend state username and picture
         AppStore.user.display_name = res.display_name;
-        AppStore.user.profile_picture = res.profile_picture;
-        const uNameDisplay = document.getElementById('user-display-name');
-        if (uNameDisplay) uNameDisplay.innerText = res.display_name;
+        // Ensure profile_picture can be null without breaking UI
+        AppStore.user.profile_picture = res.profile_picture || null;
+        const nameEl = document.getElementById('user-display-name');
+        if (nameEl) nameEl.innerText = res.display_name;
         updateProfilePictureUI();
 
         closeProfileModal();

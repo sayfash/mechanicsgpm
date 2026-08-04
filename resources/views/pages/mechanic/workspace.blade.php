@@ -1,7 +1,7 @@
 <!-- ========================================== -->
 <!-- MODULE: MECHANIC WORKSPACE                 -->
 <!-- ========================================== -->
-<section id="mechanic-workspace" class="w-full hidden space-y-8">
+<section id="mechanic-workspace" class="w-full hidden space-y-8 mt-0 pt-0">
     <!-- Branch Selection Check-In Banner -->
     <div id="mechanic-checkin-banner" class="hidden glass-panel rounded-xl p-6 border-l-4 border-amber-500">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -58,7 +58,7 @@
                     <span class="text-[10px] text-slate-500 uppercase font-bold block mb-0.5">Assigned Job
                         ID</span>
                     <span id="mech-job-id"
-                        class="inline-block whitespace-nowrap text-sm font-mono font-bold text-blue-400 bg-blue-950/40 border border-blue-800/40 px-3 py-1 rounded">JOB-PENDING</span>
+                        class="inline-block whitespace-nowrap text-sm font-mono font-bold text-blue-400 bg-blue-100/10 border border-blue-800/40 px-3 py-1 rounded">JOB-PENDING</span>
                 </div>
             </div>
 
@@ -119,7 +119,7 @@
                             Vehicle & Customer Details
                         </h4>
                         <span id="mech-editable-mode-badge"
-                            class="hidden text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold">
+                            class="hidden text-[10px] text-emerald-400 bg-emerald-100/10 border border-emerald-800/60 px-2.5 py-0.5 rounded-full font-semibold">
                             <i class="fa-solid fa-user-plus mr-1"></i>New Customer Creation Allowed
                         </span>
                     </div>

@@ -251,6 +251,12 @@ function onNavRouteClick(e, routeId) {
         return;
     }
 
+    // Prevent navigation while mechanic is fixing
+    if (AppStore.mechanicInProgress) {
+        showToast('Repair in progress. Please submit before navigating.', 'warning');
+        return;
+    }
+
     localStorage.setItem('sgpm_last_route', routeId);
     setActiveNavRoute(routeId);
     closeMobileDrawer();
@@ -309,7 +315,13 @@ function showSection(sectionId) {
             topAppBar.classList.remove('md:flex');
         }
     } else {
-        if (main) main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 py-6 overflow-y-auto block";
+        if (main) {
+            if (['super-admin-workspace', 'shop-admin-workspace', 'mechanic-workspace'].includes(sectionId)) {
+                main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 pt-0 pb-6 overflow-y-auto block";
+            } else {
+                main.className = "flex-1 w-full min-w-0 min-h-screen px-4 sm:px-8 py-6 overflow-y-auto block";
+            }
+        }
         if (sidebar) {
             sidebar.classList.remove('hidden');
             sidebar.classList.add('md:flex');

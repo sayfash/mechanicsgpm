@@ -1,25 +1,11 @@
 <!-- ========================================== -->
 <!-- MODULE: SHOP ADMIN WORKSPACE               -->
 <!-- ========================================== -->
-<section id="shop-admin-workspace" class="w-full hidden space-y-6">
+<section id="shop-admin-workspace" class="w-full hidden space-y-6 mt-6 pt-0">
 
-    <!-- Top Tab Bar: Live Branch Stock vs Spare Part Usage History -->
-    <div class="flex items-center justify-between glass-panel rounded-2xl p-2.5 shadow-lg border border-slate-800/80">
-        <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-none max-w-full">
-            <button onclick="setShopAdminTab('inventory')" id="btn-shop-tab-inventory"
-                class="px-5 py-2.5 font-bold text-xs rounded-xl transition duration-200 bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-md flex items-center gap-2">
-                <i class="fa-solid fa-boxes-stacked text-sm"></i> Live Branch Stock
-            </button>
-            <button onclick="setShopAdminTab('history')" id="btn-shop-tab-history"
-                class="px-5 py-2.5 font-bold text-xs rounded-xl transition duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-sm"></i> Spare Part Usage History
-            </button>
-        </div>
-    </div>
-
-    <!-- Sub-Tab 1: Live Inventory Stock -->
+    <!-- Sub-Tab 1: Live Branch Inventory Stock -->
     <div id="shop-panel-inventory" class="space-y-4">
-        <!-- Streamlined Integrated Header & Controls Container -->
+        <!-- Integrated Header & Controls Container -->
         <div class="glass-panel rounded-2xl p-4 sm:p-5 shadow-xl relative z-20 overflow-visible space-y-4">
             <!-- Top Row: Title, Branch Badge & Action Button -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3.5">
@@ -32,11 +18,11 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
                     <div class="bg-slate-900 px-3.5 py-1.5 rounded-xl border border-slate-800 flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
                         <span class="text-xs text-slate-400 uppercase font-semibold">Branch:</span>
-                        <span id="shop-admin-branch-badge" class="text-xs font-bold text-blue-400">Downtown Main Office</span>
+                        <span id="shop-admin-branch-badge" class="text-xs font-bold text-blue-400"></span>
                     </div>
                     <button onclick="openShopAdminAddInventoryModal()"
                         class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-blue-500/20">
-                        <i class="fa-solid fa-plus"></i> Add New Item
+                        <i class="fa-solid fa-plus"></i> Add New Item <span id="shop-admin-add-branch" class="ml-1 text-xs text-blue-300"></span>
                     </button>
                 </div>
             </div>
@@ -52,6 +38,9 @@
                         placeholder="Search SKU, Name, or Description..."
                         class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-mono">
                 </div>
+
+                <!-- Hidden / Contextual Branch Filter (Required for JS compatibility) -->
+                <select id="shop-admin-branch-filter" onchange="filterShopAdminInventory()" class="hidden"></select>
 
                 <!-- Column Filter Group -->
                 <div class="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -72,8 +61,9 @@
 
                 <!-- Sort Control -->
                 <div class="flex items-center gap-2 flex-1 min-w-[200px]">
-                    <span class="text-xs text-slate-400 font-semibold uppercase flex items-center gap-1.5 shrink-0"><i
-                            class="fa-solid fa-arrow-down-short-wide text-blue-400"></i>Sort:</span>
+                    <span class="text-xs text-slate-400 font-semibold uppercase flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-arrow-down-short-wide text-blue-400"></i>Sort:
+                    </span>
                     <select id="shop-admin-inv-sort-select" onchange="filterShopAdminInventory()"
                         class="w-full flex-1 min-w-[130px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-medium">
                         <option value="updated_at-desc">Updated (Newest First)</option>
@@ -96,11 +86,15 @@
                         </span>
                         <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                     </button>
-                    <div id="shop-admin-inv-column-menu" class="hidden absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/95 backdrop-blur-xl border border-slate-800 shadow-2xl p-3 z-[100] text-xs space-y-2">
-                            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-1">
-                                <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">Show / Hide Columns</span>
-                                <button type="button" onclick="resetShopInvColumns()" class="text-[10px] text-cyan-400 hover:underline font-semibold">Select All</button>
-                            </div>
+
+                    <!-- Dropdown Popover Menu -->
+                    <div id="shop-admin-inv-column-menu"
+                        class="hidden absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/95 backdrop-blur-xl border border-slate-800 shadow-2xl p-3 z-[100] text-xs space-y-2">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-1">
+                            <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">Show / Hide Columns</span>
+                            <button type="button" onclick="resetShopInvColumns()" class="text-[10px] text-cyan-400 hover:underline font-semibold">Select All</button>
+                        </div>
+                        <div class="space-y-1.5 max-h-60 overflow-y-auto custom-scrollbar">
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-shop-col="sku" checked onchange="toggleShopInvColumn('sku', this.checked)" class="w-3.5 h-3.5 accent-blue-500 rounded bg-slate-900 border-slate-700">
                                 <span>SKU Code</span>
@@ -137,14 +131,15 @@
                     </div>
                 </div>
             </div>
+        </div>
 
         <!-- Top Pagination Toolbar -->
-        <div id="shop-admin-inventory-pagination-top"></div>
+        <div id="shop-admin-inventory-pagination-top" class="my-4"></div>
 
         <!-- Inventory Spreadsheet Table -->
         <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
-            <div class="overflow-x-auto lg:overflow-x-hidden">
-                <table class="w-full text-center text-sm border-collapse table-auto lg:table-fixed">
+            <div class="overflow-x-auto">
+                <table class="w-full text-center text-sm border-collapse table-auto">
                     <thead>
                         <tr id="shop-admin-inventory-thead-tr" class="bg-slate-900 border-b border-slate-800 text-slate-300 text-center">
                             <th onclick="toggleSortShopInventory('sku')"
@@ -175,11 +170,11 @@
                                 Last Updated <i class="fa-solid fa-sort text-[10px] ml-1 text-slate-500"></i>
                             </th>
                             <th class="p-4 font-semibold uppercase tracking-wider text-xs whitespace-nowrap lg:w-[8%] text-center">
-                                Actions</th>
+                                Actions
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="shop-admin-inventory-tbody"
-                        class="divide-y divide-slate-800/80 text-slate-300 text-xs font-sans">
+                    <tbody id="shop-admin-inventory-tbody" class="divide-y divide-slate-800/80 text-slate-300 text-xs font-sans">
                         <!-- Injected JS -->
                     </tbody>
                 </table>
@@ -193,14 +188,12 @@
     <!-- Sub-Tab 2: Spare Part Usage History -->
     <div id="shop-panel-history" class="hidden space-y-6">
         <!-- Title Container & Mode Selector -->
-        <div
-            class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 glass-panel rounded-2xl p-6 shadow-xl">
             <div class="w-full flex-1">
-                <h2 class="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> Spare Part Usage History
-                </h2>
-                <p class="text-sm text-slate-400 mt-1 w-full">Audit log of all spare parts taken and used in
-                    maintenance repair jobs.</p>
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Audit log of all spare parts taken and used in maintenance repair jobs for your branch.</p>
             </div>
 
             <div class="flex items-center gap-3 w-full md:w-auto">
@@ -237,8 +230,9 @@
 
                         <!-- Time Filter Select (Day, Week, Range) -->
                         <div class="flex items-center gap-1.5">
-                            <span class="text-xs text-slate-400 font-semibold uppercase"><i
-                                    class="fa-solid fa-filter text-cyan-400 mr-1"></i>Period:</span>
+                            <span class="text-xs text-slate-400 font-semibold uppercase">
+                                <i class="fa-solid fa-filter text-cyan-400 mr-1"></i>Period:
+                            </span>
                             <select id="parts-hist-period-select" onchange="handlePartsHistoryPeriodChange()"
                                 class="px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-200 font-semibold">
                                 <option value="all">All Time</option>
@@ -269,8 +263,9 @@
 
                     <!-- Right Group: Category Filter -->
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-slate-400 font-semibold uppercase"><i
-                                class="fa-solid fa-tags text-purple-400 mr-1"></i>Category:</span>
+                        <span class="text-xs text-slate-400 font-semibold uppercase">
+                            <i class="fa-solid fa-tags text-purple-400 mr-1"></i>Category:
+                        </span>
                         <select id="parts-hist-category-select" onchange="filterPartsHistory()"
                             class="px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-200 font-semibold">
                             <!-- Populated dynamically -->
@@ -279,37 +274,31 @@
                 </div>
             </div>
 
-            <!-- Usage Records Table -->
+            <!-- History Table -->
             <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-center text-sm border-collapse">
+                <div class="overflow-x-auto lg:overflow-x-hidden">
+                    <table class="w-full text-center text-sm border-collapse table-auto lg:table-fixed">
                         <thead>
-                            <tr class="bg-slate-900 border-b border-slate-800 text-slate-300 text-center">
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs w-44 text-center">
-                                    Date & Time</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs text-center">Job
-                                    ID</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs text-center">Spare
-                                    Part & Category</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs w-28 text-center">
-                                    Qty Taken</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs w-36 text-center">
-                                    Unit Price</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs w-40 text-center">
-                                    Total Billed</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs text-center">
-                                    Vehicle & Customer</th>
-                                <th class="p-4 font-semibold uppercase tracking-wider text-xs text-center">
-                                    Assigned Mechanic</th>
+                            <tr id="shop-admin-history-thead-tr" class="bg-slate-900 border-b border-slate-800 text-slate-300 text-center">
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[13%]">Date & Time</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[10%]">Job ID</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[22%]">Part Name & SKU</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[8%]">Qty Used</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[12%]">Unit Price</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[13%]">Subtotal Cost</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[12%]">Customer / Vehicle</th>
+                                <th class="p-4 font-semibold text-xs whitespace-nowrap lg:w-[10%]">Mechanic</th>
                             </tr>
                         </thead>
-                        <tbody id="parts-history-list-tbody"
-                            class="divide-y divide-slate-800/80 text-slate-300 text-xs font-sans">
+                        <tbody id="parts-history-list-tbody" class="divide-y divide-slate-800/80 text-slate-300 text-xs font-sans">
                             <!-- Injected JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <!-- Bottom Pagination -->
+            <div id="shop-admin-history-pagination-bottom" class="my-4"></div>
         </div>
 
         <!-- MONTHLY VIEW MODE CONTAINER -->

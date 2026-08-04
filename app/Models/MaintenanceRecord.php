@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\RecordPartUsed;
 
 class MaintenanceRecord extends Model
 {
@@ -56,4 +57,9 @@ class MaintenanceRecord extends Model
     {
         return $this->hasMany(RecordPartUsed::class);
     }
+    public function parts()
+    {
+        return $this->hasMany(RecordPartUsed::class);
+    }
 }
+

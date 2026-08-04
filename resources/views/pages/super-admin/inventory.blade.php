@@ -1,5 +1,5 @@
 <!-- SUB-TAB: Global Inventory Master Ledger -->
-<div id="super-admin-tab-inventory" class="space-y-6 hidden">
+<div id="super-admin-tab-inventory" class="space-y-6 hidden mt-0 pt-0">
     <!-- Top Tab Bar: Live Global Stock vs Global Spare Part Usage History -->
     <div
         class="flex items-center justify-between glass-panel rounded-2xl p-2.5 shadow-lg border border-slate-800/80">

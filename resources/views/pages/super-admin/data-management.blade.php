@@ -1,5 +1,5 @@
 <!-- SUB-TAB: Data Management CRUD Console -->
-<div id="super-admin-tab-management" class="w-full min-w-0 max-w-full space-y-6 hidden">
+<div id="super-admin-tab-management" class="w-full min-w-0 max-w-full space-y-6 hidden mt-0 pt-0">
     <!-- Top Main Container Sub-Tabs Bar for Data Management -->
     <div class="w-full flex items-center gap-2 overflow-x-auto whitespace-nowrap glass-panel p-2.5 rounded-2xl border border-slate-800/80 shadow-lg custom-scrollbar">
         <button onclick="setManagementSubTab('branches')" id="btn-mgt-branches"
