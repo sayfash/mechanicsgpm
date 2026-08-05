@@ -77,6 +77,7 @@ Route::prefix('api')->group(function () {
         Route::post('/vehicles/bind-customer', [\App\Http\Controllers\API\VehicleController::class, 'bindCustomer']);
         
         // Job / Maintenance Records
+        Route::post('/jobs/start', [\App\Http\Controllers\API\JobController::class, 'startJob']);
         Route::post('/jobs/submit', [\App\Http\Controllers\API\JobController::class, 'submitMechanicJob']);
         Route::get('/maintenance-records', [\App\Http\Controllers\API\JobController::class, 'getCustomerMaintenanceRecords']);
         Route::put('/maintenance-records', [\App\Http\Controllers\API\JobController::class, 'editMaintenanceRecord']);
@@ -99,4 +100,8 @@ Route::prefix('api')->group(function () {
         Route::get('/spare-parts-history', [\App\Http\Controllers\API\InventoryController::class, 'getHistory']);
     });
 });
-Route::middleware('auth:web')->get('/print-maintenance-record', [\App\Http\Controllers\API\JobController::class, 'printMaintenanceRecord']);
+
+use App\Http\Controllers\MaintenanceRecordController;
+
+Route::get('/maintenance/print/{job_id}', [MaintenanceRecordController::class, 'printRecord'])
+    ->name('maintenance.print');

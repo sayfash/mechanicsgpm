@@ -201,3 +201,20 @@
     <!-- Bottom Pagination Toolbar -->
     <div id="super-admin-maintenance-pagination-bottom" class="my-4"></div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        window.printMaintenanceRecord = function(recordId) {
+            if (!recordId) {
+                const titleEl = document.getElementById('record-detail-title');
+                recordId = titleEl ? titleEl.dataset.id : null;
+            }
+            if (!recordId) {
+                showToast('Record ID not found – cannot print.', 'error');
+                return;
+            }
+            const url = `/api/print-maintenance-record?record_id=${encodeURIComponent(recordId)}`;
+            window.open(url, '_blank');
+        };
+    });
+</script>

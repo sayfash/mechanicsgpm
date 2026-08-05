@@ -203,6 +203,7 @@ async function request(action, params = {}, method = 'POST') {
         'get_all_vehicles': { url: '/api/vehicles', method: 'GET' },
         'add_customer_and_vehicle': { url: '/api/customers/register-with-vehicle', method: 'POST' },
         'submit_mechanic_job': { url: '/api/jobs/submit', method: 'POST' },
+        'start_job': { url: '/api/jobs/start', method: 'POST' },
         'add_inventory': { url: '/api/inventory', method: 'POST' },
         'edit_inventory': { url: '/api/inventory', method: 'PUT' },
         'delete_inventory': { url: '/api/inventory', method: 'DELETE' },
@@ -358,7 +359,6 @@ const APP_NAV_ROUTES = [
     {
         group: 'Mechanic Workstation',
         items: [
-            { id: 'mechanic-form', label: 'Intake & Repair Sheet', icon: 'fa-file-signature', permission: 'view_mechanic_workstation' },
             { id: 'mechanic-review', label: 'Checklist Verification', icon: 'fa-clipboard-check', permission: 'view_mechanic_workstation' },
             { id: 'mechanic-history', label: 'My Repair History', icon: 'fa-clock-rotate-left', permission: 'view_mechanic_workstation' }
         ]
@@ -366,6 +366,7 @@ const APP_NAV_ROUTES = [
     {
         group: 'Shop Administration',
         items: [
+            { id: 'shop-intake', label: 'Intake & Repair Sheet', icon: 'fa-file-signature', permission: 'view_shop_intake' },
             { id: 'shop-inventory', label: 'Live Inventory Stock', icon: 'fa-boxes-stacked', permission: 'view_shop_inventory' },
             { id: 'shop-history', label: 'Spare Part Usage History', icon: 'fa-clock-rotate-left', permission: 'view_shop_history' }
         ]
@@ -406,10 +407,10 @@ function hasPermission(permission) {
             'view_management', 'edit_management', 'view_logs', 'export_data'
         ],
         'shop_admin': [
-            'view_shop_inventory', 'view_shop_history', 'edit_inventory'
+            'view_shop_inventory', 'view_shop_history', 'edit_inventory', 'view_shop_intake', 'create_job', 'edit_job'
         ],
         'mechanic': [
-            'view_mechanic_workstation', 'create_job', 'edit_job'
+            'view_mechanic_workstation', 'edit_job'
         ]
     };
 
@@ -433,8 +434,8 @@ window.canUserAccessRoute = canUserAccessRoute;
 
 function getDefaultUserRoute() {
     if (!AppStore.user) return 'auth-gate';
-    if (AppStore.user.role === 'shop_admin') return 'shop-inventory';
-    if (AppStore.user.role === 'mechanic') return 'mechanic-form';
+    if (AppStore.user.role === 'shop_admin') return 'shop-intake';
+    if (AppStore.user.role === 'mechanic') return 'mechanic-review';
     if (hasPermission('view_stats')) return 'stats';
     return 'stats';
 }

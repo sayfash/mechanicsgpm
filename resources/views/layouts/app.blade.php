@@ -74,7 +74,7 @@
     <script src="{{ asset('assets/js/modules/store.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('assets/js/modules/auth.js') }}?v={{ time() }}"></script>
     <script src="{{ asset('assets/js/modules/navigation.js') }}?v={{ time() }}"></script>
-    <script src="{{ asset('assets/js/app.js') }}?v={{ time() }}" defer></script>
+    <script src="{{ asset('assets/js/app.js') }}?v={{ time() }}"></script>
 </body>
 
 </html>

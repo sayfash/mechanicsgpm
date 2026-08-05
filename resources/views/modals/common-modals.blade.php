@@ -70,7 +70,7 @@
 
         <!-- Modal Footer -->
         <div class="flex items-center justify-end gap-3 border-t border-slate-800/80 pt-4 mt-4">
-            <button type="button" onclick="printMaintenanceRecord(document.getElementById('record-detail-title').dataset.jobId)" class="px-5 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg">Print</button>
+            <button type="button" onclick="printMaintenanceRecord(document.getElementById('record-detail-title').dataset.id)" class="px-5 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-lg">Print</button>
         </div>
     </div>
 </div>

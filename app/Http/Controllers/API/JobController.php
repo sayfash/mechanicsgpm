@@ -148,28 +148,48 @@ class JobController extends Controller
                 }
             }
 
-            // 4. Create Maintenance Record
-            $job = MaintenanceRecord::create([
-                'job_id' => $jobIdStr,
-                'vehicle_id' => $vehicle->id,
-                'branch_id' => $branchId,
-                'mechanic_id' => $user ? $user->id : 1,
-                'repair_category' => $request->input('repair_category', 'Repair'),
-                'description' => $fullDescription,
-                'km_reached' => $request->input('km_reached') ? intval($request->input('km_reached')) : null,
-                'common_issues' => $commonIssues,
-                'other_issues' => $otherIssues,
-                'service_sku' => !empty($serviceSkus) ? implode(', ', $serviceSkus) : null,
-                'service_name' => !empty($serviceNames) ? implode(', ', $serviceNames) : null,
-                'labor_fee' => $totalLaborFee,
-                'other_expenses_category' => !empty($otherCategories) ? implode(', ', $otherCategories) : null,
-                'other_expenses_fee' => $totalOtherFee,
-                'repair_date' => Carbon::today(),
-                'check_in_time' => Carbon::now()->format('H:i:s'),
-                'start_time' => $request->input('start_time') ? Carbon::parse($request->input('start_time')) : Carbon::now(),
-                'end_time' => $request->input('end_time') ? Carbon::parse($request->input('end_time')) : Carbon::now(),
-                'status' => 'completed',
-            ]);
+            // 4. Create or Update Maintenance Record
+            $recordId = $request->input('record_id');
+            if ($recordId) {
+                $job = MaintenanceRecord::findOrFail($recordId);
+                $job->update([
+                    'mechanic_id' => $request->input('mechanic_id') ?? $job->mechanic_id ?? 1,
+                    'repair_category' => $request->input('repair_category', 'Repair'),
+                    'description' => $fullDescription,
+                    'km_reached' => $request->input('km_reached') ? intval($request->input('km_reached')) : $job->km_reached,
+                    'common_issues' => $commonIssues,
+                    'other_issues' => $otherIssues,
+                    'service_sku' => !empty($serviceSkus) ? implode(', ', $serviceSkus) : $job->service_sku,
+                    'service_name' => !empty($serviceNames) ? implode(', ', $serviceNames) : $job->service_name,
+                    'labor_fee' => $totalLaborFee,
+                    'other_expenses_category' => !empty($otherCategories) ? implode(', ', $otherCategories) : $job->other_expenses_category,
+                    'other_expenses_fee' => $totalOtherFee,
+                    'end_time' => $request->input('end_time') ? Carbon::parse($request->input('end_time')) : Carbon::now(),
+                    'status' => 'completed',
+                ]);
+            } else {
+                $job = MaintenanceRecord::create([
+                    'job_id' => $jobIdStr,
+                    'vehicle_id' => $vehicle->id,
+                    'branch_id' => $branchId,
+                    'mechanic_id' => $request->input('mechanic_id') ?? ($user ? $user->id : 1) ?? 1,
+                    'repair_category' => $request->input('repair_category', 'Repair'),
+                    'description' => $fullDescription,
+                    'km_reached' => $request->input('km_reached') ? intval($request->input('km_reached')) : null,
+                    'common_issues' => $commonIssues,
+                    'other_issues' => $otherIssues,
+                    'service_sku' => !empty($serviceSkus) ? implode(', ', $serviceSkus) : null,
+                    'service_name' => !empty($serviceNames) ? implode(', ', $serviceNames) : null,
+                    'labor_fee' => $totalLaborFee,
+                    'other_expenses_category' => !empty($otherCategories) ? implode(', ', $otherCategories) : null,
+                    'other_expenses_fee' => $totalOtherFee,
+                    'repair_date' => Carbon::today(),
+                    'check_in_time' => Carbon::now()->format('H:i:s'),
+                    'start_time' => $request->input('start_time') ? Carbon::parse($request->input('start_time')) : Carbon::now(),
+                    'end_time' => $request->input('end_time') ? Carbon::parse($request->input('end_time')) : Carbon::now(),
+                    'status' => 'completed',
+                ]);
+            }
 
             // 5. Parts Used & Inventory Deduction
             $partsUsed = $request->input('parts_used', []);
@@ -372,16 +392,21 @@ $invId = $part['inventory_id'] ?? null;
      */
     public function printMaintenanceRecord(Request $request)
     {
-        $request->validate([
-            'job_id' => 'required|exists:maintenance_records,job_id',
-        ]);
+        $id = $request->query('record_id') ?? $request->query('id') ?? $request->query('job_id');
+
+        if (!$id) {
+            return response()->json(['error' => 'Record ID or Job ID is required.'], 400);
+        }
 
         $record = MaintenanceRecord::with([
             'vehicle.customer',
             'mechanic',
             'branch',
             'parts.inventory'
-        ])->where('job_id', $request->query('job_id'))->firstOrFail();
+        ])
+        ->where('id', $id)
+        ->orWhere('job_id', $id)
+        ->firstOrFail();
 
         // Map similar helper attributes as used in front‑end
         $recordData = $record->toArray();
@@ -413,5 +438,116 @@ $invId = $part['inventory_id'] ?? null;
         })->toArray();
 
         return view('pages.mechanic.print_maintenance_record', ['record' => $recordData]);
+    }
+
+    public function startJob(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $user = auth()->user();
+            $branchId = $request->input('branch_id') ?? ($user ? $user->branch_id : 1) ?? 1;
+
+            // 1. Resolve Customer & Vehicle
+            $vehicleId = $request->input('vehicle_id');
+            $licensePlate = trim($request->input('license_plate', ''));
+            $idCardNumber = trim($request->input('customer_idcard', ''));
+            $customerPhone = trim($request->input('customer_phone', ''));
+            $customerName = trim($request->input('customer_name', ''));
+            $customerAddress = trim($request->input('customer_address', ''));
+            $customerStatus = $request->input('customer_status', 'Retail');
+
+            $vehicleType = trim($request->input('vehicle_type', ''));
+            $frameNumber = trim($request->input('frame_number', ''));
+            $controllerNumber = trim($request->input('controller_number', ''));
+
+            $customer = null;
+            if (!empty($idCardNumber)) {
+                $customer = Customer::where('id_card_number', $idCardNumber)->first();
+            }
+            if (!$customer && !empty($customerPhone)) {
+                $customer = Customer::where('phone', $customerPhone)->first();
+            }
+            if (!$customer && !empty($customerName)) {
+                $customer = Customer::create([
+                    'name' => $customerName,
+                    'phone' => $customerPhone ?: '0000000000',
+                    'id_card_number' => $idCardNumber ?: null,
+                    'address' => $customerAddress ?: 'N/A',
+                    'customer_status' => $customerStatus,
+                ]);
+            } else if ($customer && !empty($customerName)) {
+                $customer->update([
+                    'name' => $customerName ?: $customer->name,
+                    'phone' => $customerPhone ?: $customer->phone,
+                    'address' => $customerAddress ?: $customer->address,
+                    'customer_status' => $customerStatus ?: $customer->customer_status,
+                ]);
+            }
+
+            $vehicle = null;
+            if (!empty($vehicleId) && $vehicleId !== 'new') {
+                $vehicle = Vehicle::find($vehicleId);
+            }
+            if (!$vehicle && !empty($licensePlate)) {
+                $vehicle = Vehicle::where('license_plate', $licensePlate)->first();
+            }
+            if (!$vehicle && !empty($frameNumber)) {
+                $vehicle = Vehicle::where('vin', $frameNumber)->first();
+            }
+
+            if (!$vehicle) {
+                $vPlate = !empty($licensePlate) ? $licensePlate : ('PLATE-' . strtoupper(Str::random(6)));
+                $vehicle = Vehicle::create([
+                    'license_plate' => $vPlate,
+                    'customer_id' => $customer ? $customer->id : null,
+                    'make' => $vehicleType ?: 'Generic',
+                    'model' => 'EV',
+                    'vehicle_type' => $vehicleType ?: 'EV',
+                    'vin' => $frameNumber ?: null,
+                    'controller_number' => $controllerNumber ?: null,
+                    'branch_id' => $branchId,
+                ]);
+            } else {
+                if ($customer && !$vehicle->customer_id) {
+                    $vehicle->customer_id = $customer->id;
+                }
+                if (!empty($vehicleType)) $vehicle->vehicle_type = $vehicleType;
+                if (!empty($frameNumber)) $vehicle->vin = $frameNumber;
+                if (!empty($controllerNumber)) $vehicle->controller_number = $controllerNumber;
+                $vehicle->save();
+            }
+
+            $nextId = MaintenanceRecord::max('id') ?? 0;
+            $nextId += 1;
+            $jobIdStr = sprintf("JOB-%s-%04d", date('Ymd'), $nextId);
+
+            $job = MaintenanceRecord::create([
+                'job_id' => $jobIdStr,
+                'vehicle_id' => $vehicle->id,
+                'branch_id' => $branchId,
+                'mechanic_id' => $request->input('mechanic_id') ?? 1,
+                'repair_category' => $request->input('repair_category', 'Repair'),
+                'description' => $request->input('description') ?? 'General Intake Repair Service',
+                'km_reached' => $request->input('km_reached') ? intval($request->input('km_reached')) : null,
+                'common_issues' => $request->input('common_issues'),
+                'other_issues' => $request->input('other_issues'),
+                'repair_date' => Carbon::today(),
+                'check_in_time' => Carbon::now()->format('H:i:s'),
+                'start_time' => Carbon::now(),
+                'status' => 'in_progress',
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Job started successfully.',
+                'job_id' => $job->job_id,
+                'record' => $job
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to start job: ' . $e->getMessage()], 500);
+        }
     }
 }

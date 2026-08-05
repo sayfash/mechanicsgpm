@@ -264,7 +264,10 @@ function onNavRouteClick(e, routeId) {
     if (AppStore.user?.role === 'shop_admin') {
         showSection('shop-admin-workspace');
         if (typeof setShopAdminTab === 'function') {
-            setShopAdminTab(routeId === 'shop-history' ? 'history' : 'inventory');
+            let tab = 'inventory';
+            if (routeId === 'shop-history') tab = 'history';
+            else if (routeId === 'shop-intake') tab = 'intake';
+            setShopAdminTab(tab);
         }
         return;
     }
@@ -331,8 +334,8 @@ function showSection(sectionId) {
             mobileHeader.classList.add('flex', 'md:hidden');
         }
         if (topAppBar) {
-            topAppBar.classList.add('hidden', 'md:flex');
-            topAppBar.classList.remove('flex');
+            topAppBar.classList.remove('hidden');
+            topAppBar.classList.add('flex');
         }
     }
 }

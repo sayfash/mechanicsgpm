@@ -153,6 +153,7 @@ async function request(action, params = {}, method = 'POST') {
         'get_all_vehicles': { url: '/api/vehicles', method: 'GET' },
         'add_customer_and_vehicle': { url: '/api/customers/register-with-vehicle', method: 'POST' },
         'submit_mechanic_job': { url: '/api/jobs/submit', method: 'POST' },
+        'start_job': { url: '/api/jobs/start', method: 'POST' },
         'add_inventory': { url: '/api/inventory', method: 'POST' },
         'edit_inventory': { url: '/api/inventory', method: 'PUT' },
         'delete_inventory': { url: '/api/inventory', method: 'DELETE' },
@@ -637,7 +638,7 @@ function hasPermission(permission) {
             'view_management', 'edit_management', 'view_logs', 'export_data'
         ],
         'shop_admin': [
-            'view_shop_inventory', 'view_shop_history', 'edit_inventory'
+            'view_shop_inventory', 'view_shop_history', 'edit_inventory', 'view_shop_intake', 'create_job', 'edit_job'
         ],
         'mechanic': [
             'view_mechanic_workstation', 'create_job', 'edit_job'
@@ -729,8 +730,8 @@ function canUserAccessRoute(routeId) {
 
 function getDefaultUserRoute() {
     if (!AppStore.user) return 'auth-gate';
-    if (AppStore.user.role === 'shop_admin') return 'shop-inventory';
-    if (AppStore.user.role === 'mechanic') return 'mechanic-form';
+    if (AppStore.user.role === 'shop_admin') return 'shop-intake';
+    if (AppStore.user.role === 'mechanic') return 'mechanic-review';
     if (hasPermission('view_stats')) return 'stats';
     return 'stats';
 }
@@ -895,6 +896,8 @@ function onNavRouteClick(e, routeId) {
         showSection('shop-admin-workspace');
         if (routeId === 'shop-history') {
             setShopAdminTab('history');
+        } else if (routeId === 'shop-intake') {
+            setShopAdminTab('intake');
         } else {
             setShopAdminTab('inventory');
         }
@@ -1305,6 +1308,7 @@ function setMechanicTab(tabName) {
 }
 
 async function resetMechanicRepairForm() {
+    AppStore.activeIntakeRecordId = null;
     // Get next JOB ID
     try {
         const data = await request('get_next_job_id', {}, 'GET');
@@ -1326,6 +1330,7 @@ async function resetMechanicRepairForm() {
     document.getElementById('mech-display-controller').value = '';
     document.getElementById('mech-km-reached').value = '';
     document.getElementById('mech-other-issues').value = '';
+    if (document.getElementById('mech-assign-mechanic')) document.getElementById('mech-assign-mechanic').value = '';
 
     // Uncheck checkboxes
     document.querySelectorAll('input[name="common_issue"]').forEach(chk => chk.checked = false);
@@ -1342,20 +1347,33 @@ async function resetMechanicRepairForm() {
 }
 
 async function performMechanicCustomerLookup() {
-    const query = document.getElementById('mech-search-query').value.trim();
+    const queryEl = document.getElementById('mech-search-query');
+    if (!queryEl) return;
+    const query = queryEl.value.trim();
     if (!query) {
         showToast('Please enter Customer ID or ID Card Number.', 'warning');
         return;
     }
 
     try {
-        const data = await request('lookup_customer_by_id_card', { query: query }, 'GET');
+        const rawData = await request('lookup_customer_by_id_card', { query: query }, 'GET');
+        
+        // Normalize response if wrapped in an array or returned as collection
+        const data = Array.isArray(rawData) ? rawData[0] : rawData;
+        if (!data) {
+            showToast('Customer data not found.', 'warning');
+            return;
+        }
 
-        // Populate read-only inputs
-        document.getElementById('mech-display-name').value = data.name;
-        if (document.getElementById('mech-display-phone')) document.getElementById('mech-display-phone').value = data.phone || 'N/A';
-        document.getElementById('mech-display-idcard').value = data.id_card_number || 'N/A';
-        document.getElementById('mech-display-address').value = data.address || 'N/A';
+        // Populate read-only inputs safely
+        const nameEl = document.getElementById('mech-display-name');
+        if (nameEl) nameEl.value = data.name || '';
+        const phoneEl = document.getElementById('mech-display-phone');
+        if (phoneEl) phoneEl.value = data.phone || 'N/A';
+        const idcardEl = document.getElementById('mech-display-idcard');
+        if (idcardEl) idcardEl.value = data.id_card_number || 'N/A';
+        const addressEl = document.getElementById('mech-display-address');
+        if (addressEl) addressEl.value = data.address || 'N/A';
 
         if (data.customer_status) {
             const statusSelect = document.getElementById('mech-customer-status');
@@ -1365,22 +1383,32 @@ async function performMechanicCustomerLookup() {
             }
         }
 
-        if (data.vehicles && data.vehicles.length > 0) {
+        if (data.vehicles && Array.isArray(data.vehicles) && data.vehicles.length > 0) {
             const primaryVeh = data.vehicles[0];
-            document.getElementById('mech-selected-vehicle-id').value = primaryVeh.vehicle_id;
-            document.getElementById('mech-display-plate').value = primaryVeh.license_plate;
-            document.getElementById('mech-display-type').value = primaryVeh.vehicle_type || 'N/A';
-            document.getElementById('mech-display-frame').value = primaryVeh.frame_number || 'N/A';
-            document.getElementById('mech-display-controller').value = primaryVeh.controller_number || 'N/A';
+            const vehIdEl = document.getElementById('mech-selected-vehicle-id');
+            if (vehIdEl) vehIdEl.value = primaryVeh.vehicle_id || '';
+            const plateEl = document.getElementById('mech-display-plate');
+            if (plateEl) plateEl.value = primaryVeh.license_plate || '';
+            const typeEl = document.getElementById('mech-display-type');
+            if (typeEl) typeEl.value = primaryVeh.vehicle_type || 'N/A';
+            const frameEl = document.getElementById('mech-display-frame');
+            if (frameEl) frameEl.value = primaryVeh.frame_number || 'N/A';
+            const ctrlEl = document.getElementById('mech-display-controller');
+            if (ctrlEl) ctrlEl.value = primaryVeh.controller_number || 'N/A';
             showToast('Customer file loaded successfully.', 'success');
 
             showVehicleLastRepairPopup(primaryVeh.license_plate, primaryVeh.last_repair_time, primaryVeh.category_repairs);
         } else {
-            document.getElementById('mech-selected-vehicle-id').value = '';
-            document.getElementById('mech-display-plate').value = '';
-            document.getElementById('mech-display-type').value = '';
-            document.getElementById('mech-display-frame').value = '';
-            document.getElementById('mech-display-controller').value = '';
+            const vehIdEl = document.getElementById('mech-selected-vehicle-id');
+            if (vehIdEl) vehIdEl.value = '';
+            const plateEl = document.getElementById('mech-display-plate');
+            if (plateEl) plateEl.value = '';
+            const typeEl = document.getElementById('mech-display-type');
+            if (typeEl) typeEl.value = '';
+            const frameEl = document.getElementById('mech-display-frame');
+            if (frameEl) frameEl.value = '';
+            const ctrlEl = document.getElementById('mech-display-controller');
+            if (ctrlEl) ctrlEl.value = '';
             showToast('Customer found, but they have no registered vehicle.', 'warning');
         }
     } catch (err) {
@@ -1940,6 +1968,8 @@ function removeMechAccumulatedPart(partId) {
 
 function renderMechAccumulatedParts() {
     const tbody = document.getElementById('mech-parts-accumulator-tbody');
+    if (!tbody) return;
+
     const totalSpan = document.getElementById('mech-accumulated-total-count');
     const customerStatus = document.getElementById('mech-customer-status')?.value || 'Retail';
     const showChargedOpt = isChargedOptionStatus(customerStatus);
@@ -1964,7 +1994,7 @@ function renderMechAccumulatedParts() {
         }
     }
 
-    if (AppStore.mechAccumulatedParts.length === 0) {
+    if (!Array.isArray(AppStore.mechAccumulatedParts) || AppStore.mechAccumulatedParts.length === 0) {
         const colSpan = showChargedOpt ? 5 : 4;
         tbody.innerHTML = `
                     <tr>
@@ -1981,7 +2011,7 @@ function renderMechAccumulatedParts() {
 
     tbody.innerHTML = AppStore.mechAccumulatedParts.map(p => {
         const invItem = partsCatalog.find(i => i.id == p.inventory_id);
-        const price = invItem ? parseFloat(invItem.price || 0) : 0;
+        const price = invItem ? parseFloat(invItem.price || 0) : (parseFloat(p.price) || 0);
         const isCharged = showChargedOpt ? !!p.is_charged : true;
 
         let priceDisplay = `<span class="text-slate-400 font-mono font-semibold">${formatIDR(price)}</span>`;
@@ -2006,7 +2036,7 @@ function renderMechAccumulatedParts() {
 
         return `
                     <tr class="border-b border-slate-800/40 text-[11px] text-slate-300">
-                        <td class="py-2"><span class="font-bold font-mono text-blue-400 block">${p.sku}</span>${p.part_name}</td>
+                        <td class="py-2"><span class="font-bold font-mono text-blue-400 block">${escapeHtml(p.sku)}</span>${escapeHtml(p.part_name)}</td>
                         <td class="py-2 text-right font-mono">${priceDisplay}</td>
                         ${chargedTd}
                         <td class="py-2 text-right font-bold text-slate-200">${p.qty}</td>
@@ -2022,6 +2052,8 @@ function renderMechAccumulatedParts() {
     if (totalSpan) totalSpan.innerText = AppStore.mechAccumulatedParts.length;
     updateEstimatedGrandTotal();
 }
+window.renderMechAccumulatedParts = renderMechAccumulatedParts;
+window.renderMechPartsAccumulator = renderMechAccumulatedParts;
 
 // --- Mechanics Time Tracker ---
 function getLocalSQLTimestamp(date = new Date()) {
@@ -2035,33 +2067,58 @@ function getLocalSQLTimestamp(date = new Date()) {
     return `${yyyy}-${MM}-${dd} ${hh}:${mm}:${ss}`;
 }
 
-function startMechanicTimerClock() {
-    // Prevent navigation and tab close while fixing
-    AppStore.mechanicInProgress = true;
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    if (!document.getElementById('mech-selected-vehicle-id').value) {
-        showToast('Please search and verify a customer first.', 'warning');
+async function startMechanicTimerClock() {
+    const vehicleId = document.getElementById('mech-selected-vehicle-id')?.value || '';
+    if (!vehicleId) {
+        showToast('Please search and verify a customer/vehicle first.', 'warning');
         return;
     }
 
-    const now = new Date();
-    AppStore.mechStartTime = getLocalSQLTimestamp(now);
-    AppStore.mechDurationSecs = 0;
+    const mechanicId = document.getElementById('mech-assign-mechanic')?.value;
+    if (!mechanicId) {
+        showToast('Please assign a mechanic first.', 'warning');
+        return;
+    }
 
-    document.getElementById('mech-start-timestamp').innerText = AppStore.mechStartTime;
-    document.getElementById('mech-stop-timestamp').innerText = '-';
+    // Accumulate checkboxes
+    const checkedIssues = Array.from(document.querySelectorAll('input[name="common_issue"]:checked')).map(chk => chk.value);
+    const commonIssuesStr = checkedIssues.join(', ');
 
-    document.getElementById('btn-mech-start-timer').disabled = true;
-    document.getElementById('btn-mech-stop-timer').disabled = false;
+    const payload = {
+        vehicle_id: vehicleId,
+        mechanic_id: mechanicId,
+        km_reached: document.getElementById('mech-km-reached')?.value || '',
+        repair_category: document.getElementById('mech-repair-category')?.value || 'Repair',
+        common_issues: commonIssuesStr,
+        other_issues: document.getElementById('mech-other-issues')?.value || '',
+        customer_name: document.getElementById('mech-display-name')?.value.trim() || '',
+        customer_phone: document.getElementById('mech-display-phone')?.value.trim() || '',
+        customer_idcard: document.getElementById('mech-display-idcard')?.value.trim() || '',
+        customer_address: document.getElementById('mech-display-address')?.value.trim() || '',
+        license_plate: document.getElementById('mech-display-plate')?.value.trim() || '',
+        vehicle_type: document.getElementById('mech-display-type')?.value.trim() || '',
+        frame_number: document.getElementById('mech-display-frame')?.value.trim() || '',
+        controller_number: document.getElementById('mech-display-controller')?.value.trim() || '',
+        customer_status: document.getElementById('mech-customer-status')?.value || 'Retail'
+    };
 
-    if (AppStore.mechTimerInterval) clearInterval(AppStore.mechTimerInterval);
-    AppStore.mechTimerInterval = setInterval(() => {
-        AppStore.mechDurationSecs++;
-        updateTimerDisplay(AppStore.mechDurationSecs);
-    }, 1000);
+    try {
+        const res = await request('start_job', payload);
+        showToast(res.message || 'Job started and mechanic assigned.', 'success');
 
-    showToast('Repair clock started.', 'info');
+        // Open print work order automatically in a new tab
+        if (res.record && res.record.id) {
+            window.open(`/api/print-maintenance-record?record_id=${res.record.id}`, '_blank');
+        }
+
+        // Reset the form so the Shop Admin can dispatch another mechanic
+        await resetMechanicRepairForm();
+        if (typeof loadActiveJobsList === 'function') {
+            await loadActiveJobsList();
+        }
+    } catch (err) {
+        showToast(err.message || 'Failed to start job.', 'error');
+    }
 }
 
 
@@ -2075,12 +2132,13 @@ function stopMechanicTimerClock() {
     document.getElementById('btn-mech-stop-timer').disabled = true;
     document.getElementById('btn-mech-submit-record').disabled = false;
 
-    showToast('Repair clock stopped. Submit record to save.', 'success');
+    showToast('Repair clock stopped. Submit record to finalize and save.', 'success');
 }
 
 function resetMechanicTimer() {
     AppStore.mechStartTime = null;
     AppStore.mechStopTime = null;
+    AppStore.activeIntakeRecordId = null;
     AppStore.mechDurationSecs = 0;
     if (AppStore.mechTimerInterval) clearInterval(AppStore.mechTimerInterval);
 
@@ -2136,6 +2194,7 @@ async function submitMechanicJobRecord(event) {
     }));
 
     const payload = {
+        record_id: AppStore.activeIntakeRecordId || null,
         job_id: jobText || rawJobId,
         vehicle_id: vehicleId,
         km_reached: km,
@@ -2173,8 +2232,12 @@ async function submitMechanicJobRecord(event) {
         const res = await request('submit_mechanic_job', payload);
         showToast(res.message || 'Job submitted successfully.', 'success');
         AppStore.mechanicInProgress = false;
+        AppStore.activeIntakeRecordId = null;
         localStorage.removeItem('mechanicDraft');
         await resetMechanicRepairForm();
+        if (typeof loadActiveJobsList === 'function') {
+            await loadActiveJobsList();
+        }
         if (typeof fetchMaintenanceRecords === 'function') {
             fetchMaintenanceRecords();
         }
@@ -2375,35 +2438,43 @@ function viewRecordDetailsModal(recordId) {
     if (!r) return;
 
     let partsSummary = '<span class="text-slate-500">No parts billed.</span>';
-    if (r.parts && r.parts.length > 0) {
+    if (r.parts && Array.isArray(r.parts) && r.parts.length > 0) {
         partsSummary = r.parts.map(p => `
                     <div class="flex items-center justify-between py-1 border-b border-slate-900 text-xs font-semibold">
-                         <span class="text-slate-300">${p.part_name} (${p.sku})</span>
-                         <span class="font-bold text-slate-200">x${p.quantity_used} @ ${formatIDR(p.price_at_use)}</span>
+                         <span class="text-slate-300">${escapeHtml(p?.part_name || p?.name || 'Sparepart')} (${escapeHtml(p?.sku || '')})</span>
+                         <span class="font-bold text-slate-200">x${p?.quantity_used || 1} @ ${formatIDR(p?.price_at_use || p?.price || 0)}</span>
                     </div>
                 `).join('');
     }
+
+    const createdDate = r.created_at ? new Date(r.created_at).toLocaleString() : 'N/A';
+    const branchName = r.branch_name || r.branch?.name || 'Main Branch';
+    const plate = r.license_plate || r.vehicle?.license_plate || 'N/A';
+    const vehType = r.vehicle_type || r.vehicle?.vehicle_type || 'N/A';
+    const frameNum = r.frame_number || r.vehicle?.vin || 'N/A';
+    const ctrlNum = r.controller_number || r.vehicle?.controller_number || 'N/A';
+    const mechName = r.mechanic_name || r.mechanic?.display_name || r.mechanic?.username || 'N/A';
 
     const html = `
                 <div class="space-y-4 text-sm text-slate-300">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <span class="text-[10px] text-slate-500 uppercase font-bold block">Logged Date</span>
-                            <span class="font-bold text-slate-200">${new Date(r.created_at).toLocaleString()}</span>
+                            <span class="font-bold text-slate-200">${createdDate}</span>
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-500 uppercase font-bold block">Branch Location</span>
-                            <span class="font-bold text-slate-200">${r.branch_name}</span>
+                            <span class="font-bold text-slate-200">${escapeHtml(branchName)}</span>
                         </div>
                     </div>
                     
                     <div class="border-t border-slate-900 pt-3">
                         <span class="text-[10px] text-slate-500 uppercase font-bold block mb-1">Customer / Vehicle Details</span>
                         <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div>Plate: <span class="font-mono text-slate-400 font-bold">${r.license_plate}</span></div>
-                            <div>Type: <span class="text-slate-400 font-semibold">${r.vehicle_type || 'N/A'}</span></div>
-                            <div>Frame: <span class="font-mono text-slate-400 font-bold">${r.frame_number || 'N/A'}</span></div>
-                            <div>Controller: <span class="font-mono text-slate-400 font-bold">${r.controller_number || 'N/A'}</span></div>
+                            <div>Plate: <span class="font-mono text-slate-400 font-bold">${escapeHtml(plate)}</span></div>
+                            <div>Type: <span class="text-slate-400 font-semibold">${escapeHtml(vehType)}</span></div>
+                            <div>Frame: <span class="font-mono text-slate-400 font-bold">${escapeHtml(frameNum)}</span></div>
+                            <div>Controller: <span class="font-mono text-slate-400 font-bold">${escapeHtml(ctrlNum)}</span></div>
                         </div>
                     </div>
                     
@@ -2414,13 +2485,13 @@ function viewRecordDetailsModal(recordId) {
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-500 uppercase font-bold block">Assigned Mechanic</span>
-                            <span class="font-bold text-slate-200">${r.mechanic_name || 'N/A'}</span>
+                            <span class="font-bold text-slate-200">${escapeHtml(mechName)}</span>
                         </div>
                     </div>
 
                     <div class="border-t border-slate-900 pt-3">
                         <span class="text-[10px] text-slate-500 uppercase font-bold block">Logged Diagnostics / Issues</span>
-                        <p class="text-slate-200 mt-1 font-medium bg-slate-950 p-2.5 rounded border border-slate-900 text-xs">${[r.common_issues, r.other_issues].filter(Boolean).join(' | ') || 'Routine inspection.'}</p>
+                        <p class="text-slate-200 mt-1 font-medium bg-slate-950 p-2.5 rounded border border-slate-900 text-xs">${escapeHtml([r.common_issues, r.other_issues].filter(Boolean).join(' | ') || 'Routine inspection.')}</p>
                     </div>
 
                     <div class="border-t border-slate-900 pt-3">
@@ -2588,18 +2659,23 @@ function toggleSortShopInventory(field) {
 
 async function setShopAdminTab(tabName) {
     AppStore.shopAdminActiveTab = tabName;
-    const routeId = tabName === 'history' ? 'shop-history' : 'shop-inventory';
+    let routeId = 'shop-inventory';
+    if (tabName === 'history') routeId = 'shop-history';
+    else if (tabName === 'intake') routeId = 'shop-intake';
+
     localStorage.setItem('sgpm_last_route', routeId);
     showSection('shop-admin-workspace');
     setActiveNavRoute(routeId);
 
     const panelInv = document.getElementById('shop-panel-inventory');
     const panelHist = document.getElementById('shop-panel-history');
+    const panelIntake = document.getElementById('shop-panel-intake');
     const btnInv = document.getElementById('btn-shop-tab-inventory');
     const btnHist = document.getElementById('btn-shop-tab-history');
 
     if (panelInv) panelInv.classList.add('hidden');
     if (panelHist) panelHist.classList.add('hidden');
+    if (panelIntake) panelIntake.classList.add('hidden');
 
     if (btnInv) btnInv.className = "px-4 py-2 font-bold text-xs rounded-lg transition duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/40";
     if (btnHist) btnHist.className = "px-4 py-2 font-bold text-xs rounded-lg transition duration-200 text-slate-400 hover:text-slate-200 hover:bg-slate-900/40";
@@ -2612,8 +2688,238 @@ async function setShopAdminTab(tabName) {
         if (panelHist) panelHist.classList.remove('hidden');
         if (btnHist) btnHist.className = "px-4 py-2 font-bold text-xs rounded-lg transition duration-200 bg-cyan-600/10 text-cyan-400 border border-cyan-500/20";
         await fetchSparePartsHistory();
+    } else if (tabName === 'intake') {
+        if (panelIntake) panelIntake.classList.remove('hidden');
+        await loadShopAdminIntake();
     }
 }
+
+async function loadShopAdminIntake() {
+    try {
+        const users = await request('get_all_users', {}, 'GET');
+        const mechanics = Array.isArray(users) ? users.filter(u => u.role === 'mechanic') : [];
+        const select = document.getElementById('mech-assign-mechanic');
+        if (select) {
+            select.innerHTML = '<option value="">-- Choose Mechanic --</option>' + 
+                mechanics.map(m => `<option value="${m.id}">${escapeHtml(m.display_name || m.username)}</option>`).join('');
+        }
+        await fetchMechanicBranchParts();
+        await fetchDynamicChecklists();
+        await loadActiveJobsList();
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to load mechanics.', 'error');
+    }
+}
+window.loadShopAdminIntake = loadShopAdminIntake;
+
+let activeJobsTimerInterval = null;
+function startActiveJobsTimerTick() {
+    if (activeJobsTimerInterval) clearInterval(activeJobsTimerInterval);
+    activeJobsTimerInterval = setInterval(() => {
+        document.querySelectorAll('.active-job-timer').forEach(el => {
+            const startStr = el.getAttribute('data-start-time');
+            if (!startStr) return;
+            const start = new Date(startStr.replace(/-/g, '/'));
+            const now = new Date();
+            const diffMs = Math.max(0, now - start);
+            const secs = Math.floor(diffMs / 1000);
+            const h = Math.floor(secs / 3600);
+            const m = Math.floor((secs % 3600) / 60);
+            const s = secs % 60;
+            el.innerText = [h, m, s].map(v => String(v).padStart(2, '0')).join(':');
+        });
+    }, 1000);
+}
+
+async function loadActiveJobsList() {
+    try {
+        const records = await request('get_all_maintenance_records', { status: 'in_progress' }, 'GET');
+        const container = document.getElementById('shop-active-jobs-list');
+        if (!container) return;
+
+        const recordsList = Array.isArray(records) ? records : [];
+        if (recordsList.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-500 italic">No active jobs in progress.</p>';
+            return;
+        }
+
+        container.innerHTML = recordsList.map(r => {
+            const jobId = r?.job_id || r?.id || 'JOB-PENDING';
+            const plate = r?.vehicle?.license_plate || r?.license_plate || 'N/A';
+            const custName = r?.vehicle?.customer?.name || r?.customer_name || 'N/A';
+            const mechName = r?.mechanic?.display_name || r?.mechanic?.username || r?.mechanic_name || 'N/A';
+            const startTime = r?.start_time || '';
+
+            return `
+                <div class="p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-xl space-y-2 relative transition duration-150 text-left">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold font-mono text-blue-400">${escapeHtml(String(jobId))}</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">In Progress</span>
+                    </div>
+                    <div class="text-[11px] text-slate-300 space-y-1">
+                        <div><span class="text-slate-500 font-bold">Plate:</span> <span class="font-mono text-slate-200 font-bold">${escapeHtml(String(plate))}</span></div>
+                        <div><span class="text-slate-500 font-bold">Cust:</span> <span class="text-slate-200 font-semibold">${escapeHtml(String(custName))}</span></div>
+                        <div><span class="text-slate-500 font-bold">Mech:</span> <span class="text-slate-200 font-semibold">${escapeHtml(String(mechName))}</span></div>
+                    </div>
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-800/40">
+                        <div class="font-mono text-xs font-bold text-slate-400 active-job-timer" data-start-time="${startTime}">00:00:00</div>
+                        <button type="button" onclick="resumeActiveJob(${r?.id})" class="px-2.5 py-1 bg-blue-600/25 hover:bg-blue-600/40 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold transition">
+                            Open / Complete
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        startActiveJobsTimerTick();
+    } catch (err) {
+        console.error('Failed to load active jobs:', err);
+    }
+}
+window.loadActiveJobsList = loadActiveJobsList;
+
+async function resumeActiveJob(recordId) {
+    try {
+        const r = await request('get_all_maintenance_records', { status: 'in_progress' }, 'GET');
+        const job = Array.isArray(r) ? r.find(item => item.id == recordId) : null;
+        if (!job) {
+            showToast('Job record not found or not in progress.', 'error');
+            return;
+        }
+
+        AppStore.activeIntakeRecordId = job.id;
+
+        const jobIdEl = document.getElementById('mech-job-id');
+        if (jobIdEl) jobIdEl.innerText = job.job_id || 'JOB-PENDING';
+
+        const vehIdEl = document.getElementById('mech-selected-vehicle-id');
+        if (vehIdEl) vehIdEl.value = job.vehicle_id || '';
+
+        const nameEl = document.getElementById('mech-display-name');
+        if (nameEl) nameEl.value = job.vehicle?.customer?.name || job.customer_name || '';
+
+        const phoneEl = document.getElementById('mech-display-phone');
+        if (phoneEl) phoneEl.value = job.vehicle?.customer?.phone || job.customer_phone || '';
+
+        const idcardEl = document.getElementById('mech-display-idcard');
+        if (idcardEl) idcardEl.value = job.vehicle?.customer?.id_card_number || job.customer_idcard || '';
+
+        const addressEl = document.getElementById('mech-display-address');
+        if (addressEl) addressEl.value = job.vehicle?.customer?.address || job.customer_address || '';
+
+        const statusEl = document.getElementById('mech-customer-status');
+        if (statusEl) statusEl.value = job.vehicle?.customer?.customer_status || job.customer_status || 'Retail';
+
+        const mechEl = document.getElementById('mech-assign-mechanic');
+        if (mechEl) mechEl.value = job.mechanic_id || '';
+
+        const plateEl = document.getElementById('mech-display-plate');
+        if (plateEl) plateEl.value = job.vehicle?.license_plate || job.license_plate || '';
+
+        const typeEl = document.getElementById('mech-display-type');
+        if (typeEl) typeEl.value = job.vehicle?.vehicle_type || job.vehicle_type || '';
+
+        const frameEl = document.getElementById('mech-display-frame');
+        if (frameEl) frameEl.value = job.vehicle?.vin || job.frame_number || '';
+
+        const ctrlEl = document.getElementById('mech-display-controller');
+        if (ctrlEl) ctrlEl.value = job.vehicle?.controller_number || job.controller_number || '';
+
+        const kmEl = document.getElementById('mech-km-reached');
+        if (kmEl) kmEl.value = job.km_reached || '';
+
+        const catEl = document.getElementById('mech-repair-category');
+        if (catEl) catEl.value = job.repair_category || 'Repair';
+
+        const otherEl = document.getElementById('mech-other-issues');
+        if (otherEl) otherEl.value = job.other_issues || '';
+
+        const commonIssuesArray = (job.common_issues || '').split(',').map(s => s.trim());
+        document.querySelectorAll('input[name="common_issue"]').forEach(chk => {
+            chk.checked = commonIssuesArray.includes(chk.value);
+        });
+
+        const checklistArray = (job.mechanic_form_items || '').split(',').map(s => s.trim());
+        document.querySelectorAll('input[name="mechanic_form_item"]').forEach(chk => {
+            chk.checked = checklistArray.includes(chk.value);
+        });
+
+        AppStore.mechStartTime = job.start_time;
+        AppStore.mechStopTime = null;
+        
+        const startTsEl = document.getElementById('mech-start-timestamp');
+        if (startTsEl) startTsEl.innerText = job.start_time || '-';
+        
+        const stopTsEl = document.getElementById('mech-stop-timestamp');
+        if (stopTsEl) stopTsEl.innerText = '-';
+
+        AppStore.mechAccumulatedParts = (job.parts || []).map(p => ({
+            inventory_id: p.pivot?.inventory_id || p.id,
+            sku: p.sku || '',
+            part_name: p.part_name || p.name || 'Spare Part',
+            qty: p.pivot?.quantity_used || p.quantity_used || 1,
+            is_charged: p.pivot?.is_charged !== undefined ? !!p.pivot?.is_charged : true,
+            price: p.price_at_use || p.price || 0
+        }));
+        renderMechAccumulatedParts();
+
+        AppStore.mechAccumulatedServices = [];
+        if (job.service_sku) {
+            const skus = job.service_sku.split(',').map(s => s.trim());
+            const names = (job.service_name || '').split(',').map(s => s.trim());
+            skus.forEach((sku, idx) => {
+                if (sku) {
+                    AppStore.mechAccumulatedServices.push({
+                        sku: sku,
+                        name: names[idx] || sku,
+                        fee: parseFloat(job.labor_fee) || 0,
+                        is_charged: true
+                    });
+                }
+            });
+        }
+        renderMechServicesAccumulator();
+
+        AppStore.mechAccumulatedOtherServices = [];
+        if (job.other_expenses_category) {
+            const cats = job.other_expenses_category.split(',').map(c => c.trim());
+            cats.forEach(cat => {
+                if (cat) {
+                    AppStore.mechAccumulatedOtherServices.push({
+                        category: cat,
+                        fee: parseFloat(job.other_expenses_fee) || 0,
+                        is_charged: true
+                    });
+                }
+            });
+        }
+        renderMechOtherServicesAccumulator();
+
+        const btnStart = document.getElementById('btn-mech-start-timer');
+        if (btnStart) btnStart.disabled = true;
+        const btnStop = document.getElementById('btn-mech-stop-timer');
+        if (btnStop) btnStop.disabled = false;
+        const btnSubmit = document.getElementById('btn-mech-submit-record');
+        if (btnSubmit) btnSubmit.disabled = true;
+
+        if (AppStore.mechTimerInterval) clearInterval(AppStore.mechTimerInterval);
+        if (job.start_time) {
+            const start = new Date(String(job.start_time).replace(/-/g, '/'));
+            AppStore.mechTimerInterval = setInterval(() => {
+                const now = new Date();
+                AppStore.mechDurationSecs = Math.floor(Math.max(0, now - start) / 1000);
+                updateTimerDisplay(AppStore.mechDurationSecs);
+            }, 1000);
+        }
+
+        showToast('Active job loaded successfully.', 'info');
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to resume active job.', 'error');
+    }
+}
+window.resumeActiveJob = resumeActiveJob;
 
 async function fetchSparePartsHistory() {
     try {
@@ -3664,6 +3970,9 @@ function renderMaintenanceRecordsTable(data) {
                         <button onclick="openEditMaintenanceRecordModal(${m.id})" class="w-20 py-1 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold rounded border border-blue-500/20 text-xs transition flex items-center justify-center gap-1 mx-auto">
                             <i class="fa-solid fa-pen-to-square text-[11px]"></i> Edit
                         </button>
+                        <button onclick="printMaintenanceRecord(${m.id})" class="w-20 py-1 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 font-bold rounded border border-emerald-500/20 text-xs transition flex items-center justify-center gap-1.5 mx-auto">
+                            <i class="fa-solid fa-print text-[11px]"></i> Print
+                        </button>
                     </div>
                 </td>`;
         }
@@ -4361,7 +4670,6 @@ async function submitEditMaintenanceRecord(event, recordId) {
 // ------------------------------------------------
 function printMaintenanceRecord() {
     try {
-        // The numeric PK is stored on the modal title (data‑id)
         const titleEl = document.getElementById('record-detail-title');
         const recordId = titleEl ? titleEl.getAttribute('data-id') : null;
 
@@ -4370,32 +4678,11 @@ function printMaintenanceRecord() {
             return;
         }
 
-        // Build the full API URL (same base as other API calls)
-        const apiUrl = `/api/print-maintenance-record?record_id=${encodeURIComponent(recordId)}`;
-
-        // Open the URL in a new tab but include auth headers.
-        // We achieve this by making a temporary fetch that returns a URL
-        // to a printable view (the controller renders a Blade view, so
-        // the response is HTML). The fetch is done with the same token
-        // you use for other AJAX calls, then we write the response
-        // into a new window.
-        request('get', apiUrl)          // <-- reuse your generic request wrapper
-            .then(res => {
-                // The controller returns a Blade view that auto‑calls window.print()
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(res);
-                printWindow.document.close();
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Failed to open print view.', 'error');
-            });
+        window.open(`/api/print-maintenance-record?record_id=${encodeURIComponent(recordId)}`, '_blank');
     } catch (e) {
         console.error(e);
-        showToast('Failed to open print view.', 'error');
     }
 }
-
 
 function deleteMaintenanceRecord(recordId) {
     showConfirmDeleteModal({
@@ -5064,8 +5351,16 @@ window.handleEditVehicleSubmit = handleEditVehicleSubmit;
 
 
 window.printMaintenanceRecord = function(recordId) {
+    if (!recordId) {
+        const titleEl = document.getElementById('record-detail-title');
+        recordId = titleEl ? titleEl.dataset.id : null;
+    }
+    if (!recordId) {
+        showToast('Record ID not found – cannot print.', 'error');
+        return;
+    }
     // Open printable view in a new tab
-    const url = `/print-maintenance-record?job_id=${encodeURIComponent(recordId)}`;
+    const url = `/api/print-maintenance-record?record_id=${encodeURIComponent(recordId)}`;
     window.open(url, '_blank');
 };
 
