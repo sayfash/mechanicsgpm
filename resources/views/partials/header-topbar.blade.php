@@ -1,5 +1,5 @@
-<!-- Top App Bar Header Navigation (Full Width Above App Shell & Sidebar) -->
-<header id="top-app-bar" class="w-full hidden flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-6 py-3 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 backdrop-blur-md sticky top-0 z-40">
+<!-- Top App Bar Header Navigation (Desktop Only ≥768px, hidden on login & mobile) -->
+<header id="top-app-bar" class="w-full hidden md:flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 px-6 py-3 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 backdrop-blur-md sticky top-0 z-40">
     <!-- Left: Logo & Branding -->
     <div class="flex items-center gap-3">
         <div class="flex items-center gap-2.5">
@@ -7,16 +7,16 @@
                 <i class="fa-solid fa-infinity text-base"></i>
             </div>
             <div class="truncate">
-                <h1 class="text-sm font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">SGPM MECHANIC</h1>
+                <h1 class="text-sm font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500">SGPM SERVICE CENTER</h1>
                 <p class="text-[9px] text-slate-500 dark:text-slate-400 tracking-widest uppercase font-semibold">Compliance Desk</p>
             </div>
         </div>
         <nav class="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 ml-4 border-l border-slate-200 dark:border-slate-800 pl-4">
             <i class="fa-solid fa-house text-slate-400 dark:text-slate-500"></i>
             <span>/</span>
-            <span id="breadcrumb-section-label" class="text-slate-800 dark:text-slate-200 font-bold">Portofolio domain</span>
+            <span id="breadcrumb-section-label" class="text-slate-800 dark:text-slate-200 font-bold">Home</span>
             <span>/</span>
-            <span id="breadcrumb-tab-label" class="text-slate-500 dark:text-slate-400 font-bold">Transfer</span>
+            <span id="breadcrumb-tab-label" class="text-slate-500 dark:text-slate-400 font-bold">Dashboard</span>
         </nav>
     </div>
 
@@ -40,27 +40,38 @@
                 </div>
                 <div class="truncate flex-1 min-w-0 text-left">
                     <div id="dropdown-user-name" class="font-bold text-slate-900 dark:text-slate-100 text-xs truncate">Santomo Group</div>
-                    <div id="dropdown-user-email" class="text-slate-400 dark:text-slate-400 text-[10px] font-mono mt-0.5 truncate">it.santomo@outlook.com</div>
+                    <div class="mt-0.5"><span id="dropdown-user-role" class="px-1.5 py-[1px] text-[8px] tracking-wider font-extrabold rounded-full inline-block bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400 border border-blue-200 dark:border-blue-800/40 uppercase">Role</span></div>
                 </div>
             </div>
 
             <!-- Edit Profile (Left Aligned) -->
             <button type="button" onclick="openProfileModal(event); toggleTopProfileDropdown(event);"
                 class="w-full text-left px-3 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-semibold transition flex items-center justify-start gap-2.5 cursor-pointer">
-                <i class="fa-solid fa-user-pen text-blue-500 dark:text-blue-400 w-4 text-center mr-0 pointer-events-none"></i>
-                <span class="text-left flex-1">Edit Profile</span>
+                <i class="fa-solid fa-user text-blue-500 dark:text-blue-400 w-4 text-center mr-0 pointer-events-none"></i>
+                <span class="text-left flex-1" data-i18n="nav.edit_profile">Edit Profile</span>
             </button>
 
             <!-- Dark Mode Switch Row -->
-            <div class="theme-toggle-row px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer font-semibold" onclick="toggleThemeMode(event)">
+            <div class="theme-toggle-row px-3 py-2 rounded-xl flex items-center justify-between cursor-pointer font-semibold select-none" onclick="toggleThemeMode(event)">
                 <span class="flex items-center gap-2.5 text-left">
                     <i id="theme-toggle-icon" class="fa-solid fa-moon text-blue-500 dark:text-blue-400 w-4 text-center mr-0 pointer-events-none"></i>
-                    <span>Dark Mode</span>
+                    <span id="theme-toggle-label" class="text-slate-700 dark:text-slate-200" data-i18n="nav.dark_mode">Dark Mode</span>
                 </span>
-                <input type="checkbox" id="theme-toggle-switch" class="sr-only peer" onchange="toggleThemeMode(event)">
-                <div id="dark-mode-toggle-pill" class="w-9 h-5 bg-slate-300 dark:bg-slate-700 rounded-full p-0.5 transition-colors relative pointer-events-none">
-                    <div id="dark-mode-toggle-circle" class="w-4 h-4 bg-white rounded-full shadow-md transition-transform transform translate-x-0"></div>
+                <div id="dark-mode-toggle-pill" class="w-11 h-6 bg-blue-600 rounded-full p-1 transition-colors duration-300 relative pointer-events-none flex items-center">
+                    <div id="dark-mode-toggle-circle" class="w-4 h-4 bg-white rounded-full shadow-md transition-transform duration-300 ease-in-out transform translate-x-5"></div>
                 </div>
+            </div>
+
+            <!-- Language Switcher Row (Bahasa Indonesia & English) -->
+            <div class="lang-switch-row px-3 py-2 rounded-xl flex items-center justify-between font-semibold select-none hover:bg-slate-100 dark:hover:bg-slate-800">
+                <span class="flex items-center gap-2.5 text-left text-slate-700 dark:text-slate-200">
+                    <i class="fa-solid fa-globe text-cyan-500 dark:text-cyan-400 w-4 text-center mr-0 pointer-events-none"></i>
+                    <span id="lang-switch-label" class="text-slate-700 dark:text-slate-200" data-i18n="nav.language">Language</span>
+                </span>
+                <select id="app-language-select" onchange="setAppLanguage(this.value)" class="px-2 py-0.5 rounded-lg text-[11px] bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-bold cursor-pointer focus:outline-none">
+                    <option value="en">EN 🇺🇸</option>
+                    <option value="id">ID 🇮🇩</option>
+                </select>
             </div>
 
             <div class="border-t border-slate-200 dark:border-slate-800 my-1 pt-1"></div>
@@ -69,7 +80,7 @@
             <button type="button" onclick="logout()"
                 class="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 font-bold transition flex items-center justify-start gap-2.5 cursor-pointer">
                 <i class="fa-solid fa-right-from-bracket w-4 text-center mr-0 pointer-events-none"></i>
-                <span class="text-left flex-1">Sign Out</span>
+                <span class="text-left flex-1" data-i18n="nav.logout">Sign Out</span>
             </button>
         </div>
     </div>

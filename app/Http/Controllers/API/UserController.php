@@ -25,7 +25,7 @@ class UserController extends Controller
         $request->validate([
             'username' => 'required|string|max:50|unique:users,username',
             'password' => 'required|string|min:6',
-            'role' => 'required|in:super_admin,shop_admin,mechanic',
+            'role' => 'required|in:super_admin,manager,shop_admin,inventory_admin,mechanic',
             'branch_id' => 'nullable|exists:branches,id',
             'display_name' => 'nullable|string|max:100',
         ]);
@@ -41,11 +41,13 @@ class UserController extends Controller
             ]);
 
             AuditLog::create([
-                'user_id' => auth()->id() ?? 1,
-                'action_type' => 'CREATE',
-                'target_table' => 'users',
-                'record_id' => $user->id,
-                'new_value' => $user->toArray(),
+                'user_id'         => auth()->id() ?? 1,
+                'action_type'     => 'CREATE',
+                'target_table'    => 'users',
+                'module_location' => 'Data Management > User Management',
+                'action_summary'  => "Created user '{$user->username}' with role " . strtoupper($user->role),
+                'record_id'       => $user->id,
+                'new_value'       => $user->toArray(),
             ]);
 
             DB::commit();
@@ -60,9 +62,9 @@ class UserController extends Controller
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
-            'username' => 'nullable|string|max:50',
+            'username' => 'nullable|string|max:50|unique:users,username,' . $request->user_id,
             'display_name' => 'nullable|string|max:100',
-            'role' => 'nullable|in:super_admin,shop_admin,mechanic',
+            'role' => 'nullable|in:super_admin,manager,shop_admin,inventory_admin,mechanic',
             'branch_id' => 'nullable',
             'password' => 'nullable|string|min:6',
         ]);
@@ -94,12 +96,14 @@ class UserController extends Controller
             $user->update($data);
 
             AuditLog::create([
-                'user_id' => auth()->id() ?? 1,
-                'action_type' => 'UPDATE',
-                'target_table' => 'users',
-                'record_id' => $user->id,
-                'old_value' => $oldValue,
-                'new_value' => $user->fresh()->toArray(),
+                'user_id'         => auth()->id() ?? 1,
+                'action_type'     => 'UPDATE',
+                'target_table'    => 'users',
+                'module_location' => 'Data Management > User Management',
+                'action_summary'  => "Updated profile/role for user '{$user->username}'",
+                'record_id'       => $user->id,
+                'old_value'       => $oldValue,
+                'new_value'       => $user->fresh()->toArray(),
             ]);
 
             DB::commit();
@@ -124,11 +128,13 @@ class UserController extends Controller
             $user->delete();
 
             AuditLog::create([
-                'user_id' => auth()->id() ?? 1,
-                'action_type' => 'DELETE',
-                'target_table' => 'users',
-                'record_id' => $user->id,
-                'old_value' => $oldValue,
+                'user_id'         => auth()->id() ?? 1,
+                'action_type'     => 'DELETE',
+                'target_table'    => 'users',
+                'module_location' => 'Data Management > User Management',
+                'action_summary'  => "Deleted user account '{$user->username}'",
+                'record_id'       => $user->id,
+                'old_value'       => $oldValue,
             ]);
 
             DB::commit();

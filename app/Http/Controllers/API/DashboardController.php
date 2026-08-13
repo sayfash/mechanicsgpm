@@ -33,12 +33,15 @@ class DashboardController extends Controller
 
     public function getDashboardStats(Request $request)
     {
+        $partsBillingSum = (float) DB::table('record_parts_used')->sum(DB::raw('price_at_use * quantity_used'));
+        $serviceOptionsSum = (float) DB::table('maintenance_records')->sum(DB::raw('labor_fee + other_expenses_fee'));
+
         $counters = [
-            'total_branches' => Branch::count(),
-            'total_users'    => User::count(),
-            'active_jobs'    => DB::table('maintenance_records')->where('status', '!=', 'completed')->count(),
-            'completed_jobs' => DB::table('maintenance_records')->where('status', 'completed')->count(),
-            'parts_revenue'  => (float) DB::table('record_parts_used')->sum(DB::raw('price_at_use * quantity_used')),
+            'total_branches'  => Branch::count(),
+            'service_revenue' => $serviceOptionsSum,
+            'active_jobs'     => DB::table('maintenance_records')->where('status', '!=', 'completed')->count(),
+            'completed_jobs'  => DB::table('maintenance_records')->where('status', 'completed')->count(),
+            'parts_revenue'   => $partsBillingSum + $serviceOptionsSum,
         ];
 
         $lowStockAlerts = DB::table('inventory')
@@ -62,23 +65,143 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Spare parts vs dates (last 7 days)
-        $sparePartsVsDates = DB::table('record_parts_used')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(quantity_used) as total_parts'))
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('date', 'desc')
-            ->limit(7)
-            ->get();
+        // Spare parts vs dates / periods
+        $period = $request->query('period', 'daily'); // 'daily', 'weekly', 'monthly'
+        $now = \Carbon\Carbon::now();
 
-        // Mechanic record time
-        $mechanicRecordTime = DB::table('maintenance_records')
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as total_records'))
-            ->groupBy(DB::raw('DATE(created_at)'))
-            ->orderBy('date', 'desc')
-            ->limit(7)
-            ->get();
+        if ($period === 'weekly') {
+            // Weekly for current month (Week 1, Week 2, etc.)
+            $startOfMonth = $now->copy()->startOfMonth();
+            $endOfMonth = $now->copy()->endOfMonth();
 
-        // Mechanic scoreboard
+            $rawRecords = DB::table('record_parts_used')
+                ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+                ->get();
+
+            $weeksData = [];
+            // Divide month into 4-5 weeks
+            $currentPointer = $startOfMonth->copy();
+            $weekNum = 1;
+            while ($currentPointer->lte($endOfMonth)) {
+                $weekStart = $currentPointer->copy();
+                $weekEnd = $currentPointer->copy()->endOfWeek()->min($endOfMonth);
+                $label = "W{$weekNum}";
+
+                $sum = $rawRecords->filter(function ($r) use ($weekStart, $weekEnd) {
+                    $c = \Carbon\Carbon::parse($r->created_at);
+                    return $c->between($weekStart, $weekEnd->copy()->endOfDay());
+                })->sum('quantity_used');
+
+                $weeksData[] = [
+                    'date' => $label,
+                    'date_range' => $weekStart->format('d M') . " - " . $weekEnd->format('d M'),
+                    'total_parts' => (int) $sum
+                ];
+
+                $currentPointer = $weekEnd->copy()->addDay()->startOfDay();
+                $weekNum++;
+            }
+            $sparePartsVsDates = collect($weeksData);
+        } elseif ($period === 'monthly') {
+            // Monthly for current year (Jan - Dec)
+            $startOfYear = $now->copy()->startOfYear();
+            $endOfYear = $now->copy()->endOfYear();
+
+            $monthlySums = DB::table('record_parts_used')
+                ->select(DB::raw('MONTH(created_at) as month_num'), DB::raw('SUM(quantity_used) as total_parts'))
+                ->whereBetween('created_at', [$startOfYear, $endOfYear])
+                ->groupBy(DB::raw('MONTH(created_at)'))
+                ->pluck('total_parts', 'month_num');
+
+            $monthsData = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $monthLabel = \Carbon\Carbon::create($now->year, $m, 1)->format('M y');
+                $monthsData[] = [
+                    'date' => $monthLabel,
+                    'total_parts' => (int) ($monthlySums[$m] ?? 0)
+                ];
+            }
+            $sparePartsVsDates = collect($monthsData);
+        } else {
+            // Daily for current week (Mon - Sun)
+            $startOfWeek = $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
+            $endOfWeek = $now->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+
+            $dailySums = DB::table('record_parts_used')
+                ->select(DB::raw('DATE(created_at) as date'), DB::raw('SUM(quantity_used) as total_parts'))
+                ->whereBetween('created_at', [$startOfWeek->copy()->startOfDay(), $endOfWeek->copy()->endOfDay()])
+                ->groupBy(DB::raw('DATE(created_at)'))
+                ->pluck('total_parts', 'date');
+
+            $dailyData = [];
+            $cur = $startOfWeek->copy();
+            while ($cur->lte($endOfWeek)) {
+                $dateStr = $cur->format('Y-m-d');
+                $labelStr = $cur->format('D, d M');
+                $dailyData[] = [
+                    'date' => $labelStr,
+                    'total_parts' => (int) ($dailySums[$dateStr] ?? 0)
+                ];
+                $cur->addDay();
+            }
+            $sparePartsVsDates = collect($dailyData);
+        }
+
+        // Mechanic record duration data
+        $mechanicsList = User::where('role', 'mechanic')->get();
+        $mechanicRecordTime = [];
+
+        foreach ($mechanicsList as $index => $mech) {
+            $aliasName = "Mechanic " . chr(65 + ($index % 26)) . ($index >= 26 ? (floor($index / 26) + 1) : '');
+            
+            // Get last 5 completed records with duration
+            $completedJobs = DB::table('maintenance_records')
+                ->where(function ($query) use ($mech) {
+                    $query->where('mechanic_id', $mech->id);
+                    if (Schema::hasColumn('maintenance_records', 'mechanic_user_id')) {
+                        $query->orWhere('mechanic_user_id', $mech->id);
+                    }
+                })
+                ->where('status', 'completed')
+                ->whereNotNull('start_time')
+                ->whereNotNull('end_time')
+                ->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->reverse()
+                ->values();
+
+            $jobsData = [];
+            $totalMinutes = 0;
+            $jobCount = 0;
+
+            foreach ($completedJobs as $jIdx => $jobRec) {
+                $start = \Carbon\Carbon::parse($jobRec->start_time);
+                $end = \Carbon\Carbon::parse($jobRec->end_time);
+                $mins = max(1, round($start->diffInMinutes($end)));
+                $totalMinutes += $mins;
+                $jobCount++;
+
+                $jobsData[] = [
+                    'job_label' => "JOB " . ($jIdx + 1),
+                    'record_id' => $jobRec->id,
+                    'duration_minutes' => $mins
+                ];
+            }
+
+            $avgMinutes = $jobCount > 0 ? round($totalMinutes / $jobCount) : 0;
+
+            $mechanicRecordTime[] = [
+                'mechanic_id'   => $mech->id,
+                'real_name'     => $mech->display_name ?? $mech->username,
+                'alias_name'    => $aliasName,
+                'avg_minutes'   => $avgMinutes,
+                'total_jobs'    => $jobCount,
+                'last_jobs'     => $jobsData
+            ];
+        }
+
+        // Mechanic scoreboard - strictly mechanics only
         $mechanicScoreboard = User::where('role', 'mechanic')
             ->get()
             ->map(function ($mechanic) {
@@ -138,7 +261,11 @@ class DashboardController extends Controller
 
     public function getCommonIssues()
     {
-        $items = Schema::hasTable('common_issues') ? DB::table('common_issues')->get() : [];
+        $items = Schema::hasTable('common_issues')
+            ? \Illuminate\Support\Facades\Cache::remember('common_issues_list', 3600, function() {
+                return DB::table('common_issues')->select('id', 'name', 'created_at', 'updated_at')->get()->toArray();
+              })
+            : [];
         return response()->json($items);
     }
 
@@ -150,6 +277,7 @@ class DashboardController extends Controller
             'created_at' => now(),
             'updated_at' => now()
         ]);
+        \Illuminate\Support\Facades\Cache::forget('common_issues_list');
         return response()->json(['message' => 'Common issue added successfully.', 'id' => $id]);
     }
 
@@ -172,7 +300,11 @@ class DashboardController extends Controller
 
     public function getMechanicFormItems()
     {
-        $items = Schema::hasTable('mechanic_form_items') ? DB::table('mechanic_form_items')->get() : [];
+        $items = Schema::hasTable('mechanic_form_items')
+            ? \Illuminate\Support\Facades\Cache::remember('mechanic_form_items_list', 3600, function() {
+                return DB::table('mechanic_form_items')->select('id', 'label', 'created_at', 'updated_at')->get()->toArray();
+              })
+            : [];
         return response()->json($items);
     }
 
@@ -184,6 +316,7 @@ class DashboardController extends Controller
             'created_at' => now(),
             'updated_at' => now()
         ]);
+        \Illuminate\Support\Facades\Cache::forget('mechanic_form_items_list');
         return response()->json(['message' => 'Mechanic checklist item added successfully.', 'id' => $id]);
     }
 
@@ -194,6 +327,7 @@ class DashboardController extends Controller
             'label' => $request->label,
             'updated_at' => now()
         ]);
+        \Illuminate\Support\Facades\Cache::forget('mechanic_form_items_list');
         return response()->json(['message' => 'Mechanic checklist item updated successfully.']);
     }
 
@@ -201,12 +335,17 @@ class DashboardController extends Controller
     {
         $request->validate(['id' => 'required']);
         DB::table('mechanic_form_items')->where('id', $request->id)->delete();
+        \Illuminate\Support\Facades\Cache::forget('mechanic_form_items_list');
         return response()->json(['message' => 'Mechanic checklist item deleted successfully.']);
     }
 
     public function getOtherServices()
     {
-        $items = Schema::hasTable('other_services') ? DB::table('other_services')->get() : [];
+        $items = Schema::hasTable('other_services')
+            ? \Illuminate\Support\Facades\Cache::remember('other_services_list', 3600, function() {
+                return DB::table('other_services')->select('id', 'sku', 'name', 'fee', 'created_at', 'updated_at')->get()->toArray();
+              })
+            : [];
         return response()->json($items);
     }
 
@@ -230,6 +369,7 @@ class DashboardController extends Controller
         }
 
         $id = DB::table('other_services')->insertGetId($data);
+        \Illuminate\Support\Facades\Cache::forget('other_services_list');
         return response()->json(['message' => 'Other service added successfully.', 'id' => $id]);
     }
 
@@ -253,6 +393,7 @@ class DashboardController extends Controller
         }
 
         DB::table('other_services')->where('id', $request->id)->update($data);
+        \Illuminate\Support\Facades\Cache::forget('other_services_list');
         return response()->json(['message' => 'Other service updated successfully.']);
     }
 
@@ -260,13 +401,22 @@ class DashboardController extends Controller
     {
         $request->validate(['id' => 'required']);
         DB::table('other_services')->where('id', $request->id)->delete();
+        \Illuminate\Support\Facades\Cache::forget('other_services_list');
         return response()->json(['message' => 'Other service deleted successfully.']);
     }
 
     // Service Options CRUD
     public function getServiceOptions()
     {
-        $items = Schema::hasTable('service_options') ? DB::table('service_options')->get() : [];
+        $items = Schema::hasTable('service_options')
+            ? \Illuminate\Support\Facades\Cache::remember('service_options_list', 3600, function() {
+                $cols = ['id', 'name', 'fee'];
+                if (Schema::hasColumn('service_options', 'sku')) $cols[] = 'sku';
+                if (Schema::hasColumn('service_options', 'created_at')) $cols[] = 'created_at';
+                if (Schema::hasColumn('service_options', 'updated_at')) $cols[] = 'updated_at';
+                return DB::table('service_options')->select($cols)->get()->toArray();
+              })
+            : [];
         return response()->json($items);
     }
 
@@ -289,6 +439,7 @@ class DashboardController extends Controller
                 $data['sku'] = $request->sku;
             }
             DB::table('service_options')->where('id', $existing->id)->update($data);
+            \Illuminate\Support\Facades\Cache::forget('service_options_list');
             return response()->json(['message' => 'Service option price/details updated successfully.', 'id' => $existing->id]);
         }
 
@@ -309,6 +460,7 @@ class DashboardController extends Controller
         }
 
         $id = DB::table('service_options')->insertGetId($data);
+        \Illuminate\Support\Facades\Cache::forget('service_options_list');
         return response()->json(['message' => 'Service option added successfully.', 'id' => $id]);
     }
 
@@ -335,6 +487,7 @@ class DashboardController extends Controller
         }
 
         DB::table('service_options')->where('id', $request->id)->update($data);
+        \Illuminate\Support\Facades\Cache::forget('service_options_list');
         return response()->json(['message' => 'Service option updated successfully.']);
     }
 
@@ -342,6 +495,7 @@ class DashboardController extends Controller
     {
         $request->validate(['id' => 'required']);
         DB::table('service_options')->where('id', $request->id)->delete();
+        \Illuminate\Support\Facades\Cache::forget('service_options_list');
         return response()->json(['message' => 'Service option deleted successfully.']);
     }
 }

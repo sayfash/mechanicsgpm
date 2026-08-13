@@ -27,6 +27,16 @@
                 </select>
             </div>
             <div>
+                <label class="block text-xs font-semibold text-amber-400 mb-1 uppercase">Warranty Category</label>
+                <select id="shop-add-inv-warranty-category" required
+                    class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-amber-900/50 text-amber-300 font-bold">
+                    <option value="Warranty A">Warranty A (under 6 months / 10k KM)</option>
+                    <option value="Warranty B">Warranty B (under 1 year / 10k KM)</option>
+                    <option value="Warranty C">Warranty C (under 2 years / 20k KM)</option>
+                    <option value="Unclaimable / No Warranty" selected>Unclaimable / No Warranty</option>
+                </select>
+            </div>
+            <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Connected Service
                     (Optional)</label>
                 <select id="shop-add-inv-connected-service"
@@ -72,6 +82,16 @@
                 <select id="shop-edit-inv-category" required
                     class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-slate-800 text-slate-200">
                     <!-- Populated JS -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-amber-400 mb-1 uppercase">Warranty Category</label>
+                <select id="shop-edit-inv-warranty-category" required
+                    class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-amber-900/50 text-amber-300 font-bold">
+                    <option value="Warranty A">Warranty A (under 6 months / 10k KM)</option>
+                    <option value="Warranty B">Warranty B (under 1 year / 10k KM)</option>
+                    <option value="Warranty C">Warranty C (under 2 years / 20k KM)</option>
+                    <option value="Unclaimable / No Warranty">Unclaimable / No Warranty</option>
                 </select>
             </div>
             <div>

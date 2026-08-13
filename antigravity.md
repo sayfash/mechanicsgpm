@@ -19,6 +19,7 @@
   - `/node_modules/`
   - `/storage/`
   - `/public/build/`
+  - `/graphify-out/*.json`
 - Avoid scanning the full codebase for simple single-file edits. Rely on explicitly tagged context files first.
 
 ## 4. Post-Task Explanation

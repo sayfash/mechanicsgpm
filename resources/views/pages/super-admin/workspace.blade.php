@@ -6,6 +6,9 @@
     <!-- Sub-Tab: Dashboard Metrics -->
     @include('pages.super-admin.dashboard')
 
+    <!-- Sub-Tab: Reports & Analytics Module -->
+    @include('pages.super-admin.reports')
+
     <!-- Sub-Tab: Global Inventory Master Ledger -->
     @include('pages.super-admin.inventory')
 

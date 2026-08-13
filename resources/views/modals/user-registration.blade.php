@@ -8,12 +8,21 @@
         <p class="text-xs text-slate-400 mb-4">Create authorized profiles with designated system access roles.</p>
 
         <form onsubmit="handleUserRegistration(event)" class="space-y-4">
-            <div>
-                <label
-                    class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Username</label>
-                <input type="text" id="reg-username" required
-                    class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-slate-800 text-slate-200"
-                    placeholder="newusername">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label
+                        class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Username</label>
+                    <input type="text" id="reg-username" required
+                        class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-slate-800 text-slate-200"
+                        placeholder="username">
+                </div>
+                <div>
+                    <label
+                        class="block text-xs font-semibold text-slate-400 mb-1 uppercase tracking-wider">Display Name</label>
+                    <input type="text" id="reg-display-name"
+                        class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-slate-800 text-slate-200"
+                        placeholder="John Doe">
+                </div>
             </div>
             <div>
                 <label
@@ -28,6 +37,8 @@
                     class="w-full px-3 py-2 rounded-lg text-sm bg-slate-950 border border-slate-800 text-slate-200">
                     <option value="mechanic">Mechanic</option>
                     <option value="shop_admin">Shop Admin (Inventory Scoped)</option>
+                    <option value="inventory_admin">Inventory Admin (Branch Inventory Scoped)</option>
+                    <option value="manager">Manager (Read-Only Global View)</option>
                     <option value="super_admin">Super Admin (Full Governance)</option>
                 </select>
             </div>

@@ -5,14 +5,14 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-slate-800/60">
             <div>
                 <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-shield-halved text-amber-400"></i> Compliance Audit Logs
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i> <span data-i18n="logs.title">Compliance Audit Logs</span>
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Immutable system activity ledger & database change trail across all operations.</p>
+                <p class="text-xs text-slate-400 mt-0.5" data-i18n="logs.desc">Immutable system activity ledger & database change trail across all operations.</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
                 <button onclick="exportLogsCSV()"
                     class="px-3.5 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-csv"></i> Export CSV
+                    <i class="fa-solid fa-file-csv"></i> <span data-i18n="logs.export_csv">Export CSV</span>
                 </button>
             </div>
         </div>
@@ -26,13 +26,14 @@
             <table class="w-full text-center text-xs border-collapse min-w-[850px]">
                 <thead>
                     <tr class="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px] font-semibold text-center">
-                        <th class="p-4 w-40 text-center">Timestamp</th>
-                        <th class="p-4 text-center">User</th>
-                        <th class="p-4 w-28 text-center">Action</th>
-                        <th class="p-4 text-center">Target Table</th>
-                        <th class="p-4 w-24 text-center">Record ID</th>
-                        <th class="p-4 text-center">Old State</th>
-                        <th class="p-4 text-center">New State</th>
+                        <th class="p-4 w-40 text-center" data-i18n="table.timestamp">Timestamp</th>
+                        <th class="p-4 text-center" data-i18n="table.user">User</th>
+                        <th class="p-4 w-28 text-center" data-i18n="table.actions">Action</th>
+                        <th class="p-4 text-center" data-i18n="table.module_location">Module / App Location</th>
+                        <th class="p-4 text-center" data-i18n="table.target_table">Target Table</th>
+                        <th class="p-4 w-24 text-center" data-i18n="table.record_id">Record ID</th>
+                        <th class="p-4 text-center" data-i18n="table.old_state">Old State</th>
+                        <th class="p-4 text-center" data-i18n="table.new_state">New State</th>
                     </tr>
                 </thead>
                 <tbody id="super-admin-logs-tbody" class="divide-y divide-slate-800/60 text-slate-300 font-medium text-center font-sans">

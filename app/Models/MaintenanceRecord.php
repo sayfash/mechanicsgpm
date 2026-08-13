@@ -5,15 +5,31 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\RecordPartUsed;
+use App\Models\Inventory;
 
 class MaintenanceRecord extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::deleting(function ($record) {
+            $oldParts = RecordPartUsed::where('maintenance_record_id', $record->id)->get();
+            foreach ($oldParts as $op) {
+                $inv = Inventory::find($op->inventory_id);
+                if ($inv) {
+                    $inv->increment('available_qty', $op->quantity_used);
+                }
+            }
+            RecordPartUsed::where('maintenance_record_id', $record->id)->delete();
+        });
+    }
+
     protected $fillable = [
         'job_id',
         'vehicle_id',
         'branch_id',
+        'daily_queue_number',
         'mechanic_id',
         'repair_category',
         'description',

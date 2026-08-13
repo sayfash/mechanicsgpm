@@ -118,7 +118,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-bold text-slate-200">Customer Template File (.xlsx)</h4>
-                    <p class="text-[11px] text-slate-400">Formatted template with Customer Name, Phone, KTP, Status
+                    <p class="text-[11px] text-slate-400">Formatted template with Customer ID, Customer Name, Phone, KTP, Status
                         & Branch.</p>
                 </div>
             </div>
@@ -135,7 +135,7 @@
             </div>
             <div
                 class="bg-slate-950/80 border border-slate-800/80 rounded-lg p-2.5 text-[11px] font-mono text-cyan-300">
-                Customer Name, Phone, ID Card Number, Address, Customer Status, Branch
+                Customer ID, Customer Name, Phone, ID Card Number, Address, Customer Status, Branch
             </div>
         </div>
 
@@ -237,8 +237,7 @@
                 </div>
                 <div>
                     <h4 class="text-xs font-bold text-slate-200">Vehicle Template File (.xlsx)</h4>
-                    <p class="text-[11px] text-slate-400">Formatted template with Plate, Type, Make, Model, VIN,
-                        Controller & Branch.</p>
+                    <p class="text-[11px] text-slate-400">Formatted template with Plate, Type, Make, Model, VIN, Controller, Customer ID / KTP & Branch.</p>
                 </div>
             </div>
             <button onclick="downloadVehiclesBatchTemplate()"
@@ -254,8 +253,8 @@
             </div>
             <div
                 class="bg-slate-950/80 border border-slate-800/80 rounded-lg p-2.5 text-[11px] font-mono text-cyan-300">
-                License Plate, Vehicle Type, Make, Model, Year, Frame Number / VIN, Engine Number, Controller
-                Number, Customer Name, Branch
+                License Plate, Vehicle Type, Make, Model, Color, Year, Frame Number / VIN, Engine Number, Controller
+                Number, Customer ID, ID Card Number, Customer Name, Branch
             </div>
         </div>
 
@@ -373,9 +372,13 @@
                     <label class="block text-xs font-bold text-slate-300 mb-1">Customer Status Category</label>
                     <select id="edit-cust-status"
                         class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-blue-500 focus:outline-none font-bold">
-                        <option value="Retail">Retail</option>
-                        <option value="Fleet">Fleet</option>
                         <option value="Gomolis">Gomolis</option>
+                        <option value="Operasional">Operasional</option>
+                        <option value="Retail">Retail</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Cocoride">Cocoride</option>
+                        <option value="TPI">TPI</option>
+                        <option value="Fleet">Fleet</option>
                         <option value="Gomolis-RF">Gomolis-RF</option>
                         <option value="VIP">VIP</option>
                     </select>
@@ -488,12 +491,19 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-300 mb-1">Bound Customer Owner</label>
-                <select id="edit-veh-owner"
-                    class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-blue-500 focus:outline-none">
-                    <option value="">-- No Customer Bound --</option>
-                </select>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Activate Date</label>
+                    <input type="date" id="edit-veh-activate-date"
+                        class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 font-mono focus:border-cyan-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Bound Customer Owner</label>
+                    <select id="edit-veh-owner"
+                        class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-blue-500 focus:outline-none">
+                        <option value="">-- No Customer Bound --</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
@@ -557,9 +567,13 @@
                     <label class="block text-xs font-bold text-slate-300 mb-1">Customer Status Category</label>
                     <select id="add-cust-status"
                         class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-emerald-500 focus:outline-none font-bold">
-                        <option value="Retail">Retail</option>
-                        <option value="Fleet">Fleet</option>
                         <option value="Gomolis">Gomolis</option>
+                        <option value="Operasional">Operasional</option>
+                        <option value="Retail" selected>Retail</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Cocoride">Cocoride</option>
+                        <option value="TPI">TPI</option>
+                        <option value="Fleet">Fleet</option>
                         <option value="Gomolis-RF">Gomolis-RF</option>
                         <option value="VIP">VIP</option>
                     </select>
@@ -686,12 +700,19 @@
                 </div>
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-slate-300 mb-1">Bound Customer Owner</label>
-                <select id="add-veh-owner"
-                    class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-cyan-500 focus:outline-none">
-                    <option value="">-- No Customer Bound --</option>
-                </select>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Activate Date</label>
+                    <input type="date" id="add-veh-activate-date"
+                        class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 font-mono focus:border-cyan-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Bound Customer Owner</label>
+                    <select id="add-veh-owner"
+                        class="w-full px-3 py-2 rounded-lg text-xs bg-slate-900 border border-slate-800 text-slate-100 focus:border-cyan-500 focus:outline-none">
+                        <option value="">-- No Customer Bound --</option>
+                    </select>
+                </div>
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">

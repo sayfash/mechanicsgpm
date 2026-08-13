@@ -13,15 +13,25 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $customers = Customer::withCount('vehicles')->orderBy('name', 'asc')->get();
+        $user = auth()->user();
+        $query = Customer::with(['vehicles:id,customer_id,license_plate,vehicle_type,make,model', 'branch:id,name'])
+            ->withCount('vehicles');
+
+        if ($user && $user->branch_id && !in_array(strtolower($user->role), ['super_admin', 'superadmin'])) {
+            $query->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)
+                  ->orWhereNull('branch_id');
+            });
+        }
+
+        $customers = $query->orderBy('name', 'asc')->get();
         return response()->json($customers);
     }
 
     public function store(Request $request)
     {
-        if ($request->branch_id === '') {
-            $request->merge(['branch_id' => null]);
-        }
+        $rawBranch = $request->input('branch_id');
+        $branchId = (!empty($rawBranch) && $rawBranch !== 'global' && $rawBranch !== 'null') ? intval($rawBranch) : null;
 
         $request->validate([
             'name' => 'required|string|max:100',
@@ -30,7 +40,7 @@ class CustomerController extends Controller
             'id_card_number' => 'nullable|string|max:50',
             'customer_status' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
-            'branch_id' => 'nullable|integer',
+            'branch_id' => 'nullable',
         ]);
 
         $customId = $request->customer_id;
@@ -53,14 +63,17 @@ class CustomerController extends Controller
 
         DB::beginTransaction();
         try {
-            $customer = Customer::create([
+            $customerData = [
                 'id' => $id,
                 'name' => $request->name,
                 'phone' => $request->phone,
                 'id_card_number' => $request->id_card_number,
                 'customer_status' => $request->customer_status ?? 'Retail',
                 'address' => $request->address,
-            ]);
+                'branch_id' => $branchId,
+            ];
+
+            $customer = Customer::create($customerData);
 
             AuditLog::create([
                 'user_id' => auth()->id() ?? 1, // fallback to 1 if auth not setup
@@ -87,12 +100,16 @@ class CustomerController extends Controller
             'id_card_number' => 'nullable|string|max:50',
             'customer_status' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:255',
+            'branch_id' => 'nullable',
         ]);
 
         $customer = Customer::find($request->customer_id);
         if (!$customer) {
             return response()->json(['error' => 'Customer not found.'], 404);
         }
+
+        $rawBranch = $request->input('branch_id');
+        $branchId = ($rawBranch !== null && $rawBranch !== '' && $rawBranch !== 'global' && $rawBranch !== 'null') ? intval($rawBranch) : null;
 
         $oldValue = $customer->toArray();
 
@@ -104,6 +121,7 @@ class CustomerController extends Controller
                 'id_card_number' => $request->id_card_number,
                 'customer_status' => $request->customer_status ?? 'Retail',
                 'address' => $request->address,
+                'branch_id' => $branchId,
             ]);
 
             AuditLog::create([
@@ -172,21 +190,28 @@ class CustomerController extends Controller
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
+                $custId = trim($row['Customer ID'] ?? $row['Cust ID'] ?? $row['ID'] ?? '');
                 $name = trim($row['Customer Name'] ?? '');
                 $phone = trim($row['Phone'] ?? '');
                 $idCard = trim($row['ID Card Number'] ?? '');
                 $branchName = trim($row['Branch'] ?? '');
 
-                if (!$name && !$phone && !$idCard) continue;
+                if (!$custId && !$name && !$phone && !$idCard) continue;
 
-                $branchId = auth()->user()->branch_id ?? 1;
-                if ($branchName) {
+                $user = auth()->user();
+                $branchId = null;
+                if (!empty($branchName) && strtolower($branchName) !== 'global' && strtolower($branchName) !== 'all branches') {
                     $b = \App\Models\Branch::where('name', 'like', "%{$branchName}%")->first();
                     if ($b) $branchId = $b->id;
+                } else if ($user && $user->branch_id && !in_array(strtolower($user->role), ['super_admin', 'superadmin'])) {
+                    $branchId = $user->branch_id;
                 }
 
                 $customer = null;
-                if ($idCard) {
+                if ($custId) {
+                    $customer = Customer::find($custId);
+                }
+                if (!$customer && $idCard) {
                     $customer = Customer::where('id_card_number', $idCard)->first();
                 }
                 if (!$customer && $phone) {
@@ -206,6 +231,11 @@ class CustomerController extends Controller
                     $customer->update($data);
                     $updated++;
                 } else {
+                    if ($custId) {
+                        $data['id'] = $custId;
+                    } else {
+                        $data['id'] = 'CUST-' . strtoupper(substr(md5(uniqid(microtime(true))), 0, 8));
+                    }
                     Customer::create($data);
                     $inserted++;
                 }

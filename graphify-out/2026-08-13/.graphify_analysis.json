@@ -1,0 +1,1052 @@
+{
+  "communities": {
+    "0": [
+      "public_assets_js_app_bindvehicleowner",
+      "public_assets_js_app_closeaddcustomermodal",
+      "public_assets_js_app_closeaddvehiclemodal",
+      "public_assets_js_app_closeconfirmdeletemodal",
+      "public_assets_js_app_closeeditcustomermodal",
+      "public_assets_js_app_closeeditvehiclemodal",
+      "public_assets_js_app_closeglobalmodal",
+      "public_assets_js_app_deletecategory",
+      "public_assets_js_app_deletecustomer",
+      "public_assets_js_app_deletemaintenancerecord",
+      "public_assets_js_app_deleteotherservice",
+      "public_assets_js_app_deleteserviceoption",
+      "public_assets_js_app_deleteuseraccount",
+      "public_assets_js_app_deletevehicle",
+      "public_assets_js_app_downloadcustomersbatchtemplate",
+      "public_assets_js_app_downloadinventorybatchtemplate",
+      "public_assets_js_app_downloadvehiclesbatchtemplate",
+      "public_assets_js_app_exportlogscsv",
+      "public_assets_js_app_fetchbranches",
+      "public_assets_js_app_fetchcommonissuesmgt",
+      "public_assets_js_app_fetchdynamicchecklists",
+      "public_assets_js_app_fetchformitemsmgt",
+      "public_assets_js_app_fetchmaintenancerecords",
+      "public_assets_js_app_fetchmanagementbranches",
+      "public_assets_js_app_fetchmanagementcategories",
+      "public_assets_js_app_fetchmanagementcustomers",
+      "public_assets_js_app_fetchmanagementinventory",
+      "public_assets_js_app_fetchmanagementotherservices",
+      "public_assets_js_app_fetchmanagementserviceoptions",
+      "public_assets_js_app_fetchmanagementusers",
+      "public_assets_js_app_fetchmanagementvehicles",
+      "public_assets_js_app_fetchme",
+      "public_assets_js_app_fetchsparepartcategories",
+      "public_assets_js_app_fetchvehiclesandcustomers",
+      "public_assets_js_app_filllogin",
+      "public_assets_js_app_filtercustomerstable",
+      "public_assets_js_app_filtervehiclesandcustomers",
+      "public_assets_js_app_handleeditcustomersubmit",
+      "public_assets_js_app_handleeditvehiclesubmit",
+      "public_assets_js_app_handleforgotpasswordsubmit",
+      "public_assets_js_app_handlelogin",
+      "public_assets_js_app_handlesubmitaddcustomer",
+      "public_assets_js_app_handlesubmitaddvehicle",
+      "public_assets_js_app_handleuserregistration",
+      "public_assets_js_app_importfromexcel33",
+      "public_assets_js_app_initializeapp",
+      "public_assets_js_app_openeditcustomermodal",
+      "public_assets_js_app_openeditvehiclemodal",
+      "public_assets_js_app_previewselectedprofilepicture",
+      "public_assets_js_app_printmaintenancerecord",
+      "public_assets_js_app_rendercustomerstableheader",
+      "public_assets_js_app_rendermanagementcategoriestable",
+      "public_assets_js_app_rendermanagementotherservicestable",
+      "public_assets_js_app_rendermanagementserviceoptionstable",
+      "public_assets_js_app_request",
+      "public_assets_js_app_resetmechanicrepairform",
+      "public_assets_js_app_setmanagementsubtab",
+      "public_assets_js_app_setmechaniccustomertype",
+      "public_assets_js_app_showconfirmdeletemodal",
+      "public_assets_js_app_showtoast",
+      "public_assets_js_app_submitaddbranch",
+      "public_assets_js_app_submitaddcategory",
+      "public_assets_js_app_submitaddcustomer",
+      "public_assets_js_app_submitaddinventoryitem",
+      "public_assets_js_app_submitaddotherservice",
+      "public_assets_js_app_submitaddserviceoption",
+      "public_assets_js_app_submiteditbranch",
+      "public_assets_js_app_submiteditcategory",
+      "public_assets_js_app_submiteditinventoryitem",
+      "public_assets_js_app_submiteditmaintenancerecord",
+      "public_assets_js_app_submiteditotherservice",
+      "public_assets_js_app_submiteditserviceoption",
+      "public_assets_js_app_submitedituser",
+      "public_assets_js_app_submitimportbatch",
+      "public_assets_js_app_submitmechanicjobrecord",
+      "public_assets_js_app_toggleauthview",
+      "public_assets_js_app_togglethememode",
+      "public_assets_js_app_triggerblockedlogedit"
+    ],
+    "1": [
+      "public_assets_js_app",
+      "public_assets_js_app_attachmechanicdraftlisteners",
+      "public_assets_js_app_clearimportpreview",
+      "public_assets_js_app_closecustomerscsvmodal",
+      "public_assets_js_app_closeglobalinventorycsvmodal",
+      "public_assets_js_app_closemobiledrawer",
+      "public_assets_js_app_closemobileprofiledropdown",
+      "public_assets_js_app_closerecorddetailsmodal",
+      "public_assets_js_app_closevehiclescsvmodal",
+      "public_assets_js_app_defaultcustcols",
+      "public_assets_js_app_defaultrecordscols",
+      "public_assets_js_app_defaultshopinvcols",
+      "public_assets_js_app_filterpartshistory",
+      "public_assets_js_app_formatcategorylastrepair",
+      "public_assets_js_app_formatdayssince",
+      "public_assets_js_app_handlepartshistoryperiodchange",
+      "public_assets_js_app_inittheme",
+      "public_assets_js_app_iseditablecustomerstatus",
+      "public_assets_js_app_months",
+      "public_assets_js_app_openaddvehiclemodal",
+      "public_assets_js_app_opencustomerscsvmodal",
+      "public_assets_js_app_openglobalinventorycsvmodal",
+      "public_assets_js_app_openmobiledrawer",
+      "public_assets_js_app_openprofilemodal",
+      "public_assets_js_app_openvehiclescsvmodal",
+      "public_assets_js_app_parsecsvimport",
+      "public_assets_js_app_parsecsvline",
+      "public_assets_js_app_performmechaniccustomerlookup",
+      "public_assets_js_app_renderimportpreview",
+      "public_assets_js_app_renderpartshistorylisttable",
+      "public_assets_js_app_renderpartshistorymonthlyview",
+      "public_assets_js_app_saveinvcolumnvisibility",
+      "public_assets_js_app_savemechanicdraft",
+      "public_assets_js_app_setpartshistorymode",
+      "public_assets_js_app_showvehiclelastrepairpopup",
+      "public_assets_js_app_synccustcolumncheckboxes",
+      "public_assets_js_app_syncinvcolumncheckboxes",
+      "public_assets_js_app_syncrecordscolumncheckboxes",
+      "public_assets_js_app_syncshopinvcolumncheckboxes",
+      "public_assets_js_app_toggledesktopsidebar",
+      "public_assets_js_app_togglemobiledrawer",
+      "public_assets_js_app_togglemobileprofiledropdown",
+      "public_assets_js_app_togglepasswordvisibility",
+      "public_assets_js_app_toggleprofiledropdown",
+      "public_assets_js_app_togglevehcolumnmenu",
+      "public_assets_js_app_updatemechaniccustomerfieldsstate"
+    ],
+    "2": [
+      "composer",
+      "composer_allow_plugins_pestphp_pest_plugin",
+      "composer_allow_plugins_php_http_discovery",
+      "composer_autoload",
+      "composer_autoload_dev",
+      "composer_autoload_dev_psr_4",
+      "composer_autoload_psr_4",
+      "composer_config",
+      "composer_config_allow_plugins",
+      "composer_config_optimize_autoloader",
+      "composer_config_preferred_install",
+      "composer_config_sort_packages",
+      "composer_description",
+      "composer_extra",
+      "composer_extra_laravel",
+      "composer_keywords",
+      "composer_laravel_dont_discover",
+      "composer_license",
+      "composer_minimum_stability",
+      "composer_name",
+      "composer_prefer_stable",
+      "composer_psr_4_app",
+      "composer_psr_4_database_factories",
+      "composer_psr_4_database_seeders",
+      "composer_psr_4_tests",
+      "composer_require",
+      "composer_require_dev",
+      "composer_require_dev_fakerphp_faker",
+      "composer_require_dev_laravel_boost",
+      "composer_require_dev_laravel_pail",
+      "composer_require_dev_laravel_pao",
+      "composer_require_dev_laravel_pint",
+      "composer_require_dev_mockery_mockery",
+      "composer_require_dev_nunomaduro_collision",
+      "composer_require_dev_pestphp_pest",
+      "composer_require_dev_pestphp_pest_plugin_laravel",
+      "composer_require_laravel_framework",
+      "composer_require_laravel_sanctum",
+      "composer_require_laravel_tinker",
+      "composer_require_php",
+      "composer_schema",
+      "composer_type",
+      "ref_framework",
+      "ref_laravel"
+    ],
+    "3": [
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_addcommonissue",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_addmechanicformitem",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_addotherservice",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_addserviceoption",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_deletecommonissue",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_deletemechanicformitem",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_deleteotherservice",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_deleteserviceoption",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_editcommonissue",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_editmechanicformitem",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_editotherservice",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_editserviceoption",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getcommonissues",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getdashboardstats",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getmanagementcounts",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getmechanicformitems",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getotherservices",
+      "app_http_controllers_api_dashboardcontroller_dashboardcontroller_getserviceoptions",
+      "app_http_controllers_authcontroller",
+      "app_http_controllers_authcontroller_authcontroller",
+      "app_http_controllers_authcontroller_authcontroller_forgotpassword",
+      "app_http_controllers_authcontroller_authcontroller_login",
+      "app_http_controllers_authcontroller_authcontroller_logout",
+      "app_http_controllers_authcontroller_authcontroller_me",
+      "app_http_controllers_authcontroller_authcontroller_updateprofile",
+      "app_http_controllers_legacyapicontroller",
+      "app_http_controllers_legacyapicontroller_legacyapicontroller",
+      "app_http_controllers_legacyapicontroller_legacyapicontroller_handle",
+      "illuminate_http_request",
+      "routes_api"
+    ],
+    "4": [
+      "composer_scripts",
+      "composer_scripts_dev",
+      "composer_scripts_post_autoload_dump",
+      "composer_scripts_post_create_project_cmd",
+      "composer_scripts_post_root_package_install",
+      "composer_scripts_post_update_cmd",
+      "composer_scripts_pre_package_uninstall",
+      "composer_scripts_setup",
+      "composer_scripts_test",
+      "ref_composer_config_disableprocesstimeout",
+      "ref_composer_install",
+      "ref_illuminate_foundation_composerscripts_postautoloaddump",
+      "ref_illuminate_foundation_composerscripts_prepackageuninstall",
+      "ref_npm_install_ignore_scripts",
+      "ref_npm_run_build",
+      "ref_npx_concurrently_c_93c5fd_c4b5fd_fdba74_php_artisan_serve_php_artisan_queue_listen_tries_1_npm_run_dev_names_server_queue_vite",
+      "ref_php_artisan_boost_update_ansi",
+      "ref_php_artisan_config_clear_ansi_no_additional_args",
+      "ref_php_artisan_key_generate",
+      "ref_php_artisan_key_generate_ansi",
+      "ref_php_artisan_migrate_force",
+      "ref_php_artisan_migrate_graceful_ansi",
+      "ref_php_artisan_package_discover_ansi",
+      "ref_php_artisan_test",
+      "ref_php_artisan_vendor_publish_tag_laravel_assets_ansi_force",
+      "ref_php_r_file_exists_database_database_sqlite_touch_database_database_sqlite",
+      "ref_php_r_file_exists_env_copy_env_example_env"
+    ],
+    "5": [
+      "public_assets_js_app_applypermissionguardsonui",
+      "public_assets_js_app_canuseraccessroute",
+      "public_assets_js_app_fetchmechanicbranchparts",
+      "public_assets_js_app_fetchmyrepairhistory",
+      "public_assets_js_app_fetchsparepartshistory",
+      "public_assets_js_app_filtermechanicpartoptions",
+      "public_assets_js_app_getdefaultuserroute",
+      "public_assets_js_app_handlemechaniccheckin",
+      "public_assets_js_app_haspermission",
+      "public_assets_js_app_initdesktopsidebarstate",
+      "public_assets_js_app_loadmanagementsidebarcounts",
+      "public_assets_js_app_loadmechanicdashboard",
+      "public_assets_js_app_loadmechanicdraft",
+      "public_assets_js_app_logout",
+      "public_assets_js_app_onnavrouteclick",
+      "public_assets_js_app_renderdashboardlayout",
+      "public_assets_js_app_renderrolebasednavigation",
+      "public_assets_js_app_setactivenavroute",
+      "public_assets_js_app_setmechanictab",
+      "public_assets_js_app_setshopadmintab",
+      "public_assets_js_app_setsuperadmintab",
+      "public_assets_js_app_showsection",
+      "public_assets_js_modules_store_app_nav_routes"
+    ],
+    "6": [
+      "public_assets_js_modules_store",
+      "public_assets_js_modules_store_appstore",
+      "public_assets_js_modules_store_canuseraccessroute",
+      "public_assets_js_modules_store_escapehtml",
+      "public_assets_js_modules_store_fetchsparepartcategories",
+      "public_assets_js_modules_store_formatidr",
+      "public_assets_js_modules_store_formatjobcode",
+      "public_assets_js_modules_store_getcategoryoptionshtml",
+      "public_assets_js_modules_store_getdefaultuserroute",
+      "public_assets_js_modules_store_getpagesize",
+      "public_assets_js_modules_store_handlefetchresponse",
+      "public_assets_js_modules_store_haspermission",
+      "public_assets_js_modules_store_inittheme",
+      "public_assets_js_modules_store_renderpaginationui",
+      "public_assets_js_modules_store_request",
+      "public_assets_js_modules_store_requestformdata",
+      "public_assets_js_modules_store_showtoast",
+      "public_assets_js_modules_store_togglethememode",
+      "public_assets_js_modules_store_triggertablerefresh"
+    ],
+    "7": [
+      "app_http_controllers_api_dashboardcontroller",
+      "app_http_controllers_api_jobcontroller",
+      "app_http_controllers_mechaniccontroller",
+      "app_models_branch",
+      "app_models_commonissue",
+      "app_models_commonissue_commonissue",
+      "app_models_customer",
+      "app_models_inventory",
+      "app_models_maintenancerecord",
+      "app_models_mechanicformitem",
+      "app_models_mechanicformitem_mechanicformitem",
+      "app_models_recordpartused",
+      "app_models_recordpartused_recordpartused",
+      "app_models_recordpartused_recordpartused_inventory",
+      "app_models_recordpartused_recordpartused_maintenancerecord",
+      "app_models_vehicle",
+      "illuminate_database_eloquent_factories_hasfactory",
+      "illuminate_database_eloquent_model"
+    ],
+    "8": [
+      "app_http_controllers_api_usercontroller_usercontroller",
+      "app_http_controllers_api_usercontroller_usercontroller_destroy",
+      "app_http_controllers_api_usercontroller_usercontroller_index",
+      "app_http_controllers_api_usercontroller_usercontroller_store",
+      "app_http_controllers_api_usercontroller_usercontroller_update",
+      "app_models_user",
+      "app_models_user_user",
+      "app_models_user_user_branch",
+      "app_models_user_user_casts",
+      "app_models_user_user_getauthpasswordname",
+      "config_auth",
+      "database_seeders_databaseseeder",
+      "database_seeders_databaseseeder_databaseseeder",
+      "database_seeders_databaseseeder_databaseseeder_run",
+      "illuminate_database_seeder",
+      "illuminate_foundation_auth_user",
+      "illuminate_notifications_notifiable",
+      "laravel_sanctum_hasapitokens"
+    ],
+    "9": [
+      "concurrently",
+      "laravel_vite_plugin",
+      "package",
+      "package_devdependencies",
+      "package_devdependencies_concurrently",
+      "package_devdependencies_laravel_vite_plugin",
+      "package_devdependencies_tailwindcss",
+      "package_devdependencies_tailwindcss_vite",
+      "package_devdependencies_vite",
+      "package_private",
+      "package_schema",
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_type",
+      "tailwindcss",
+      "tailwindcss_vite",
+      "vite"
+    ],
+    "10": [
+      "public_assets_js_app_openaddbranchmodal",
+      "public_assets_js_app_openaddcategorymodal",
+      "public_assets_js_app_openaddcustomermodal",
+      "public_assets_js_app_openaddinventoryitemmodal",
+      "public_assets_js_app_openaddotherservicemodal",
+      "public_assets_js_app_openaddserviceoptionmodal",
+      "public_assets_js_app_openeditbranchmodal",
+      "public_assets_js_app_openeditcategorymodal",
+      "public_assets_js_app_openeditinventoryitemmodal",
+      "public_assets_js_app_openeditmaintenancerecordmodal",
+      "public_assets_js_app_openeditotherservicemodal",
+      "public_assets_js_app_openeditserviceoptionmodal",
+      "public_assets_js_app_openeditusermodal",
+      "public_assets_js_app_openglobalmodal",
+      "public_assets_js_app_rendereditmodalparts",
+      "public_assets_js_app_showcalendardayrecords",
+      "public_assets_js_app_viewrecorddetailsmodal"
+    ],
+    "11": [
+      "app_http_controllers_api_jobcontroller_jobcontroller",
+      "app_http_controllers_api_jobcontroller_jobcontroller_deletemaintenancerecord",
+      "app_http_controllers_api_jobcontroller_jobcontroller_editmaintenancerecord",
+      "app_http_controllers_api_jobcontroller_jobcontroller_getcustomermaintenancerecords",
+      "app_http_controllers_api_jobcontroller_jobcontroller_printmaintenancerecord",
+      "app_http_controllers_mechaniccontroller_mechaniccontroller",
+      "app_http_controllers_mechaniccontroller_mechaniccontroller_getmechanicjobs",
+      "app_http_controllers_mechaniccontroller_mechaniccontroller_getnextjobid",
+      "app_http_controllers_mechaniccontroller_mechaniccontroller_lookupcustomerbyidcard",
+      "app_http_controllers_mechaniccontroller_mechaniccontroller_mechaniccheckin",
+      "app_models_maintenancerecord_maintenancerecord",
+      "app_models_maintenancerecord_maintenancerecord_branch",
+      "app_models_maintenancerecord_maintenancerecord_mechanic",
+      "app_models_maintenancerecord_maintenancerecord_parts",
+      "app_models_maintenancerecord_maintenancerecord_partsused",
+      "app_models_maintenancerecord_maintenancerecord_vehicle"
+    ],
+    "12": [
+      "public_assets_js_modules_navigation",
+      "public_assets_js_modules_navigation_applypermissionguardsonui",
+      "public_assets_js_modules_navigation_closemobiledrawer",
+      "public_assets_js_modules_navigation_closemobileprofiledropdown",
+      "public_assets_js_modules_navigation_initdesktopsidebarstate",
+      "public_assets_js_modules_navigation_onnavrouteclick",
+      "public_assets_js_modules_navigation_openmobiledrawer",
+      "public_assets_js_modules_navigation_renderdashboardlayout",
+      "public_assets_js_modules_navigation_renderrolebasednavigation",
+      "public_assets_js_modules_navigation_setactivenavroute",
+      "public_assets_js_modules_navigation_showsection",
+      "public_assets_js_modules_navigation_toggledesktopsidebar",
+      "public_assets_js_modules_navigation_togglemobiledrawer",
+      "public_assets_js_modules_navigation_togglemobileprofiledropdown",
+      "public_assets_js_modules_navigation_toggleprofiledropdown",
+      "public_assets_js_modules_navigation_toggletopprofiledropdown"
+    ],
+    "13": [
+      "app_http_controllers_api_inventorycontroller_inventorycontroller",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_addcategory",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_bulkdestroy",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_deletecategory",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_destroy",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_editcategory",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_getcategories",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_gethistory",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_importbatch",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_index",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_paircategory",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_store",
+      "app_http_controllers_api_inventorycontroller_inventorycontroller_update",
+      "app_models_inventory_inventory",
+      "app_models_inventory_inventory_branch"
+    ],
+    "14": [
+      "public_assets_js_app_fetchauditlogs",
+      "public_assets_js_app_filterglobalinventory",
+      "public_assets_js_app_filtermaintenancerecords",
+      "public_assets_js_app_filtershopadmininventory",
+      "public_assets_js_app_getpagesize",
+      "public_assets_js_app_renderglobalinventoryheader",
+      "public_assets_js_app_rendermaintenancerecordsheader",
+      "public_assets_js_app_renderpaginationui",
+      "public_assets_js_app_rendershopinventorytable",
+      "public_assets_js_app_rendershopinventorytablehead",
+      "public_assets_js_app_toggleshopinvcolumn",
+      "public_assets_js_app_togglesortglobalinventory",
+      "public_assets_js_app_togglesortrecords",
+      "public_assets_js_app_togglesortshopinventory",
+      "public_assets_js_app_triggertablerefresh"
+    ],
+    "15": [
+      "app_http_controllers_api_jobcontroller_jobcontroller_submitmechanicjob",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_bindcustomer",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_destroy",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_importvehiclesbatch",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_index",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_store",
+      "app_http_controllers_api_vehiclecontroller_vehiclecontroller_update",
+      "app_models_auditlog_auditlog",
+      "app_models_auditlog_auditlog_user",
+      "app_models_vehicle_vehicle",
+      "app_models_vehicle_vehicle_customer",
+      "app_models_vehicle_vehicle_maintenancerecords"
+    ],
+    "16": [
+      "public_assets_js_app_addotherservicetomechaccumulator",
+      "public_assets_js_app_addparttomechaccumulator",
+      "public_assets_js_app_addservicetomechaccumulator",
+      "public_assets_js_app_ischargedoptionstatus",
+      "public_assets_js_app_removemechaccumulatedotherservice",
+      "public_assets_js_app_removemechaccumulatedpart",
+      "public_assets_js_app_removemechaccumulatedservice",
+      "public_assets_js_app_rendermechaccumulatedparts",
+      "public_assets_js_app_rendermechotherservicesaccumulator",
+      "public_assets_js_app_rendermechservicesaccumulator",
+      "public_assets_js_app_resetmechanictimer",
+      "public_assets_js_app_updateestimatedgrandtotal",
+      "public_assets_js_app_updatetimerdisplay"
+    ],
+    "17": [
+      "public_assets_js_modules_auth",
+      "public_assets_js_modules_auth_closeprofilemodal",
+      "public_assets_js_modules_auth_fetchbranches",
+      "public_assets_js_modules_auth_fetchme",
+      "public_assets_js_modules_auth_filllogin",
+      "public_assets_js_modules_auth_handleforgotpasswordsubmit",
+      "public_assets_js_modules_auth_handlelogin",
+      "public_assets_js_modules_auth_handleprofileupdate",
+      "public_assets_js_modules_auth_logout",
+      "public_assets_js_modules_auth_openprofilemodal",
+      "public_assets_js_modules_auth_previewselectedprofilepicture",
+      "public_assets_js_modules_auth_toggleauthview",
+      "public_assets_js_modules_auth_updateprofilepictureui"
+    ],
+    "18": [
+      "app_http_controllers_api_auditlogcontroller",
+      "app_http_controllers_api_auditlogcontroller_auditlogcontroller",
+      "app_http_controllers_api_auditlogcontroller_auditlogcontroller_index",
+      "app_http_controllers_api_auditlogcontroller_auditlogcontroller_update",
+      "app_http_controllers_api_customercontroller",
+      "app_http_controllers_api_inventorycontroller",
+      "app_http_controllers_api_usercontroller",
+      "app_http_controllers_api_vehiclecontroller",
+      "app_http_controllers_controller",
+      "app_http_controllers_controller_controller",
+      "app_models_auditlog"
+    ],
+    "19": [
+      "app_http_controllers_branchcontroller",
+      "app_http_controllers_branchcontroller_branchcontroller",
+      "app_http_controllers_branchcontroller_branchcontroller_destroy",
+      "app_http_controllers_branchcontroller_branchcontroller_index",
+      "app_http_controllers_branchcontroller_branchcontroller_store",
+      "app_http_controllers_branchcontroller_branchcontroller_update",
+      "app_models_branch_branch",
+      "app_models_branch_branch_inventory",
+      "app_models_branch_branch_maintenancerecords",
+      "app_models_branch_branch_users"
+    ],
+    "20": [
+      "modals_common_modals",
+      "modals_inventory_modals",
+      "modals_management_modals",
+      "modals_profile",
+      "modals_user_registration",
+      "partials_header_mobile",
+      "partials_header_topbar",
+      "partials_mobile_drawer",
+      "partials_sidebar",
+      "resources_views_layouts_app_blade"
+    ],
+    "21": [
+      "app_http_controllers_api_customercontroller_customercontroller",
+      "app_http_controllers_api_customercontroller_customercontroller_destroy",
+      "app_http_controllers_api_customercontroller_customercontroller_importcustomersbatch",
+      "app_http_controllers_api_customercontroller_customercontroller_index",
+      "app_http_controllers_api_customercontroller_customercontroller_registerwithvehicle",
+      "app_http_controllers_api_customercontroller_customercontroller_store",
+      "app_http_controllers_api_customercontroller_customercontroller_update",
+      "app_models_customer_customer",
+      "app_models_customer_customer_vehicles"
+    ],
+    "22": [
+      "public_assets_js_app_closesuperadminaddinventorymodal",
+      "public_assets_js_app_deleteallcurrentbranchinventory",
+      "public_assets_js_app_deleteinventoryitem",
+      "public_assets_js_app_deleteselectedinventoryitems",
+      "public_assets_js_app_fetchglobalinventory",
+      "public_assets_js_app_handlesubmitsuperadminaddinventory",
+      "public_assets_js_app_toggleselectallinventory",
+      "public_assets_js_app_toggleselectinventoryitem",
+      "public_assets_js_app_updateselectedinventorycount"
+    ],
+    "23": [
+      "pages_super_admin_audit_logs",
+      "pages_super_admin_customers",
+      "pages_super_admin_dashboard",
+      "pages_super_admin_data_management",
+      "pages_super_admin_inventory",
+      "pages_super_admin_maintenance",
+      "pages_super_admin_vehicles",
+      "resources_views_pages_super_admin_workspace_blade"
+    ],
+    "24": [
+      "public_assets_js_app_fetchglobalsparepartshistory",
+      "public_assets_js_app_filterglobalpartshistory",
+      "public_assets_js_app_handleglobalpartshistoryperiodchange",
+      "public_assets_js_app_renderglobalpartshistorylisttable",
+      "public_assets_js_app_renderglobalpartshistorymonthlyview",
+      "public_assets_js_app_setglobalinventorytab",
+      "public_assets_js_app_setglobalpartshistorymode"
+    ],
+    "25": [
+      "app_providers_appserviceprovider",
+      "app_providers_appserviceprovider_appserviceprovider",
+      "app_providers_appserviceprovider_appserviceprovider_boot",
+      "app_providers_appserviceprovider_appserviceprovider_register",
+      "bootstrap_providers",
+      "illuminate_support_serviceprovider"
+    ],
+    "26": [
+      "database_factories_userfactory",
+      "database_factories_userfactory_userfactory",
+      "database_factories_userfactory_userfactory_definition",
+      "database_factories_userfactory_userfactory_unverified",
+      "illuminate_database_eloquent_factories_factory",
+      "static"
+    ],
+    "27": [
+      "public_assets_js_app_calculatedurationstring",
+      "public_assets_js_app_datestrfilename",
+      "public_assets_js_app_exportmaintenancerecordscsv",
+      "public_assets_js_app_exporttoexcel33",
+      "public_assets_js_app_openrecorddetailsmodal",
+      "public_assets_js_app_rendermaintenancerecordstable"
+    ],
+    "28": [
+      "public_assets_js_app_closeshopadminaddinventorymodal",
+      "public_assets_js_app_closeshopadmineditinventorymodal",
+      "public_assets_js_app_fetchshopinventory",
+      "public_assets_js_app_handlesubmitshopadminaddinventory",
+      "public_assets_js_app_handlesubmitshopadmineditinventory",
+      "public_assets_js_app_loadshopadmindashboard"
+    ],
+    "29": [
+      "public_assets_js_app_loadsuperadminstats",
+      "public_assets_js_app_rendermechanicscoreboard",
+      "public_assets_js_app_rendermechanictimechart",
+      "public_assets_js_app_rendersparepartsvsdateschart",
+      "public_assets_js_app_renderstatschart",
+      "public_assets_js_app_updatemechanicdurationchart"
+    ],
+    "30": [
+      "illuminate_foundation_testing_testcase",
+      "tests_pest",
+      "tests_pest_something",
+      "tests_testcase",
+      "tests_testcase_testcase"
+    ],
+    "31": [
+      "public_assets_js_app_adjustcalendarmonth",
+      "public_assets_js_app_fetchmechanichistoryrecords",
+      "public_assets_js_app_rendermechanichistorycalendar",
+      "public_assets_js_app_rendermechanichistorytable",
+      "public_assets_js_app_sethistoryviewmode"
+    ],
+    "32": [
+      "public_assets_js_app_changebranch",
+      "public_assets_js_app_getlocalsqltimestamp",
+      "public_assets_js_app_handlebeforeunload",
+      "public_assets_js_app_startmechanictimerclock",
+      "public_assets_js_app_stopmechanictimerclock"
+    ],
+    "33": [
+      "public_assets_js_app_closeprofilemodal",
+      "public_assets_js_app_handlefetchresponse",
+      "public_assets_js_app_handleprofileupdate",
+      "public_assets_js_app_requestformdata",
+      "public_assets_js_app_updateprofilepictureui"
+    ],
+    "34": [
+      "resources_views_index_blade",
+      "resources_views_index_blade_php_pages_auth_gate",
+      "resources_views_index_blade_php_pages_mechanic_workspace",
+      "resources_views_index_blade_php_pages_shop_admin_workspace",
+      "resources_views_index_blade_php_pages_super_admin_workspace"
+    ],
+    "35": [
+      "resources_views_welcome_blade",
+      "resources_views_welcome_blade_php_pages_auth_gate",
+      "resources_views_welcome_blade_php_pages_mechanic_workspace",
+      "resources_views_welcome_blade_php_pages_shop_admin_workspace",
+      "resources_views_welcome_blade_php_pages_super_admin_workspace"
+    ],
+    "36": [
+      "public_assets_js_app_getcategoryoptionshtml",
+      "public_assets_js_app_openshopadminaddinventorymodal",
+      "public_assets_js_app_openshopadmineditinventorymodal",
+      "public_assets_js_app_opensuperadminaddinventorymodal"
+    ],
+    "37": [
+      "public_assets_js_app_rendervehiclestableheader",
+      "public_assets_js_app_resetvehcolumns",
+      "public_assets_js_app_syncvehcolumncheckboxes",
+      "public_assets_js_app_togglevehcolumn"
+    ],
+    "38": [
+      "database_migrations_0001_01_01_000000_create_users_table",
+      "database_migrations_0001_01_01_000000_create_users_table_down",
+      "database_migrations_0001_01_01_000000_create_users_table_up"
+    ],
+    "39": [
+      "database_migrations_0001_01_01_000001_create_cache_table",
+      "database_migrations_0001_01_01_000001_create_cache_table_down",
+      "database_migrations_0001_01_01_000001_create_cache_table_up"
+    ],
+    "40": [
+      "database_migrations_0001_01_01_000002_create_jobs_table",
+      "database_migrations_0001_01_01_000002_create_jobs_table_down",
+      "database_migrations_0001_01_01_000002_create_jobs_table_up"
+    ],
+    "41": [
+      "database_migrations_2026_07_29_110200_create_customers_table",
+      "database_migrations_2026_07_29_110200_create_customers_table_down",
+      "database_migrations_2026_07_29_110200_create_customers_table_up"
+    ],
+    "42": [
+      "database_migrations_2026_07_29_110300_create_vehicles_table",
+      "database_migrations_2026_07_29_110300_create_vehicles_table_down",
+      "database_migrations_2026_07_29_110300_create_vehicles_table_up"
+    ],
+    "43": [
+      "database_migrations_2026_07_29_110400_create_inventory_table",
+      "database_migrations_2026_07_29_110400_create_inventory_table_down",
+      "database_migrations_2026_07_29_110400_create_inventory_table_up"
+    ],
+    "44": [
+      "database_migrations_2026_07_29_110500_create_maintenance_records_table",
+      "database_migrations_2026_07_29_110500_create_maintenance_records_table_down",
+      "database_migrations_2026_07_29_110500_create_maintenance_records_table_up"
+    ],
+    "45": [
+      "database_migrations_2026_07_29_110600_create_record_parts_used_table",
+      "database_migrations_2026_07_29_110600_create_record_parts_used_table_down",
+      "database_migrations_2026_07_29_110600_create_record_parts_used_table_up"
+    ],
+    "46": [
+      "database_migrations_2026_07_29_110700_create_audit_logs_table",
+      "database_migrations_2026_07_29_110700_create_audit_logs_table_down",
+      "database_migrations_2026_07_29_110700_create_audit_logs_table_up"
+    ],
+    "47": [
+      "database_migrations_2026_07_29_110800_create_option_tables",
+      "database_migrations_2026_07_29_110800_create_option_tables_down",
+      "database_migrations_2026_07_29_110800_create_option_tables_up"
+    ],
+    "48": [
+      "database_migrations_2026_07_30_065607_create_personal_access_tokens_table",
+      "database_migrations_2026_07_30_065607_create_personal_access_tokens_table_down",
+      "database_migrations_2026_07_30_065607_create_personal_access_tokens_table_up"
+    ],
+    "49": [
+      "database_migrations_2026_07_30_065648_create_personal_access_tokens_table",
+      "database_migrations_2026_07_30_065648_create_personal_access_tokens_table_down",
+      "database_migrations_2026_07_30_065648_create_personal_access_tokens_table_up"
+    ],
+    "50": [
+      "database_migrations_2026_07_30_080000_add_sku_to_other_services_table",
+      "database_migrations_2026_07_30_080000_add_sku_to_other_services_table_down",
+      "database_migrations_2026_07_30_080000_add_sku_to_other_services_table_up"
+    ],
+    "51": [
+      "artisan",
+      "routes_console"
+    ],
+    "52": [
+      "bootstrap_app"
+    ],
+    "53": [
+      "config_app"
+    ],
+    "54": [
+      "config_cache"
+    ],
+    "55": [
+      "config_database"
+    ],
+    "56": [
+      "config_filesystems"
+    ],
+    "57": [
+      "config_logging"
+    ],
+    "58": [
+      "config_mail"
+    ],
+    "59": [
+      "config_queue"
+    ],
+    "60": [
+      "config_sanctum"
+    ],
+    "61": [
+      "config_services"
+    ],
+    "62": [
+      "config_session"
+    ],
+    "63": [
+      "copy_script"
+    ],
+    "64": [
+      "public_index"
+    ],
+    "65": [
+      "public_migrate"
+    ],
+    "66": [
+      "public_test"
+    ],
+    "67": [
+      "resources_js_app"
+    ],
+    "68": [
+      "resources_views_modals_common_modals_blade"
+    ],
+    "69": [
+      "resources_views_modals_inventory_modals_blade"
+    ],
+    "70": [
+      "resources_views_modals_management_modals_blade"
+    ],
+    "71": [
+      "resources_views_modals_profile_blade"
+    ],
+    "72": [
+      "resources_views_modals_user_registration_blade"
+    ],
+    "73": [
+      "resources_views_pages_auth_gate_blade"
+    ],
+    "74": [
+      "resources_views_pages_mechanic_print_maintenance_record_blade"
+    ],
+    "75": [
+      "resources_views_pages_mechanic_workspace_blade"
+    ],
+    "76": [
+      "resources_views_pages_shop_admin_workspace_blade"
+    ],
+    "77": [
+      "resources_views_pages_super_admin_audit_logs_blade"
+    ],
+    "78": [
+      "resources_views_pages_super_admin_customers_blade"
+    ],
+    "79": [
+      "resources_views_pages_super_admin_dashboard_blade"
+    ],
+    "80": [
+      "resources_views_pages_super_admin_data_management_blade"
+    ],
+    "81": [
+      "resources_views_pages_super_admin_inventory_blade"
+    ],
+    "82": [
+      "resources_views_pages_super_admin_maintenance_blade"
+    ],
+    "83": [
+      "resources_views_pages_super_admin_vehicles_blade"
+    ],
+    "84": [
+      "resources_views_partials_header_mobile_blade"
+    ],
+    "85": [
+      "resources_views_partials_header_topbar_blade"
+    ],
+    "86": [
+      "resources_views_partials_mobile_drawer_blade"
+    ],
+    "87": [
+      "resources_views_partials_sidebar_blade"
+    ],
+    "88": [
+      "routes_web"
+    ],
+    "89": [
+      "test_login"
+    ],
+    "90": [
+      "tests_feature_exampletest"
+    ],
+    "91": [
+      "tests_unit_exampletest"
+    ],
+    "92": [
+      "vite_config"
+    ]
+  },
+  "cohesion": {
+    "0": 0.06460206460206461,
+    "1": 0.057971014492753624,
+    "2": 0.045454545454545456,
+    "3": 0.10752688172043011,
+    "4": 0.07692307692307693,
+    "5": 0.13438735177865613,
+    "6": 0.15204678362573099,
+    "7": 0.27450980392156865,
+    "8": 0.1568627450980392,
+    "9": 0.1111111111111111,
+    "10": 0.11764705882352941,
+    "11": 0.16666666666666666,
+    "12": 0.19166666666666668,
+    "13": 0.2761904761904762,
+    "14": 0.20952380952380953,
+    "15": 0.2948717948717949,
+    "16": 0.2564102564102564,
+    "17": 0.20512820512820512,
+    "18": 0.2727272727272727,
+    "19": 0.26666666666666666,
+    "20": 0.2,
+    "21": 0.4166666666666667,
+    "22": 0.25,
+    "23": 0.25,
+    "24": 0.2857142857142857,
+    "25": 0.4,
+    "26": 0.4666666666666667,
+    "27": 0.3333333333333333,
+    "28": 0.3333333333333333,
+    "29": 0.3333333333333333,
+    "30": 0.4,
+    "31": 0.4,
+    "32": 0.4,
+    "33": 0.4,
+    "34": 0.4,
+    "35": 0.4,
+    "36": 0.5,
+    "37": 0.5,
+    "38": 0.6666666666666666,
+    "39": 0.6666666666666666,
+    "40": 0.6666666666666666,
+    "41": 0.6666666666666666,
+    "42": 0.6666666666666666,
+    "43": 0.6666666666666666,
+    "44": 0.6666666666666666,
+    "45": 0.6666666666666666,
+    "46": 0.6666666666666666,
+    "47": 0.6666666666666666,
+    "48": 0.6666666666666666,
+    "49": 0.6666666666666666,
+    "50": 0.6666666666666666,
+    "51": 1.0,
+    "52": 1.0,
+    "53": 1.0,
+    "54": 1.0,
+    "55": 1.0,
+    "56": 1.0,
+    "57": 1.0,
+    "58": 1.0,
+    "59": 1.0,
+    "60": 1.0,
+    "61": 1.0,
+    "62": 1.0,
+    "63": 1.0,
+    "64": 1.0,
+    "65": 1.0,
+    "66": 1.0,
+    "67": 1.0,
+    "68": 1.0,
+    "69": 1.0,
+    "70": 1.0,
+    "71": 1.0,
+    "72": 1.0,
+    "73": 1.0,
+    "74": 1.0,
+    "75": 1.0,
+    "76": 1.0,
+    "77": 1.0,
+    "78": 1.0,
+    "79": 1.0,
+    "80": 1.0,
+    "81": 1.0,
+    "82": 1.0,
+    "83": 1.0,
+    "84": 1.0,
+    "85": 1.0,
+    "86": 1.0,
+    "87": 1.0,
+    "88": 1.0,
+    "89": 1.0,
+    "90": 1.0,
+    "91": 1.0,
+    "92": 1.0
+  },
+  "gods": [
+    {
+      "id": "public_assets_js_app_showtoast",
+      "label": "showToast()",
+      "degree": 87
+    },
+    {
+      "id": "public_assets_js_app_request",
+      "label": "request()",
+      "degree": 73
+    },
+    {
+      "id": "app_models_auditlog_auditlog",
+      "label": "AuditLog",
+      "degree": 23
+    },
+    {
+      "id": "app_http_controllers_api_dashboardcontroller_dashboardcontroller",
+      "label": "DashboardController",
+      "degree": 20
+    },
+    {
+      "id": "app_http_controllers_controller_controller",
+      "label": "Controller",
+      "degree": 19
+    },
+    {
+      "id": "app_models_maintenancerecord_maintenancerecord",
+      "label": "MaintenanceRecord",
+      "degree": 16
+    },
+    {
+      "id": "public_assets_js_app_openglobalmodal",
+      "label": "openGlobalModal()",
+      "degree": 16
+    },
+    {
+      "id": "public_assets_js_app_closeglobalmodal",
+      "label": "closeGlobalModal()",
+      "degree": 16
+    },
+    {
+      "id": "app_models_user_user",
+      "label": "User",
+      "degree": 15
+    },
+    {
+      "id": "app_http_controllers_api_inventorycontroller_inventorycontroller",
+      "label": "InventoryController",
+      "degree": 14
+    }
+  ],
+  "surprises": [
+    {
+      "source": "CustomerController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/API/CustomerController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "DashboardController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/API/DashboardController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "InventoryController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/API/InventoryController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "JobController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/API/JobController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    },
+    {
+      "source": "UserController",
+      "target": "Controller",
+      "source_files": [
+        "app/Http/Controllers/API/UserController.php",
+        "app/Http/Controllers/Controller.php"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "inherits",
+      "why": "bridges separate communities"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

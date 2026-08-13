@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGPM MECHANIC | Compliance Shop & Inventory Manager</title>
+    <title>SGPM SERVICE CENTER | Compliance Shop & Inventory Manager</title>
 
     <!-- Tailwind CSS Play CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,10 +34,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 
+    <!-- Flatpickr (Indonesian Datepicker dd/mm/yyyy) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/id.js"></script>
+
+    <!-- i18n Translation Dictionary -->
+    <script src="{{ asset('assets/js/modules/i18n.js') }}"></script>
     <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
 </head>
 
-<body class="custom-scrollbar font-sans">
+<body class="custom-scrollbar font-sans light-mode">
 
     <!-- Toast Notifications (Above all modals) -->
     <div id="toast-container" class="fixed top-6 right-6 z-[99999] flex flex-col gap-3 pointer-events-none"></div>

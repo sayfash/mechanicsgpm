@@ -1,0 +1,14 @@
+resources/views/partials/header-topbar.blade.php
+resources/views/partials/header-mobile.blade.php
+resources/views/pages/super-admin/reports.blade.php
+resources/views/pages/shop-admin/workspace.blade.php
+public/assets/js/app.js
+public/assets/js/modules/navigation.js
+public/assets/css/style.css
+public/assets/js/modules/i18n.js
+public/assets/js/modules/store.js
+app/Http/Controllers/API/InventoryController.php
+app/Http/Controllers/API/DashboardController.php
+app/Http/Controllers/BranchController.php
+app/Exports/BranchMaintenanceExport.php
+database/migrations/2026_08_11_100000_add_indexes_for_performance_optimization.php

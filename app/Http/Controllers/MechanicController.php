@@ -65,12 +65,30 @@ class MechanicController extends Controller
      */
     public function getNextJobId(Request $request)
     {
-        $nextId = MaintenanceRecord::max('id') ?? 0;
-        $nextId += 1;
+        $user = auth()->user();
+        $branchId = $request->query('branch_id') ?? ($user ? $user->branch_id : null);
         
+        $abbr = 'JOB';
+        if ($branchId) {
+            $branch = \App\Models\Branch::find($branchId);
+            if ($branch && !empty($branch->abbreviation)) {
+                $abbr = strtoupper($branch->abbreviation);
+            }
+        }
+
+        // Count existing jobs for this branch to get branch job increment
+        $branchJobCount = 1;
+        if ($branchId) {
+            $branchJobCount = MaintenanceRecord::where('branch_id', $branchId)->count() + 1;
+        } else {
+            $branchJobCount = (MaintenanceRecord::max('id') ?? 0) + 1;
+        }
+
+        $formatted = sprintf("%s-%s-%04d", $abbr, date('dmY'), $branchJobCount);
+
         return response()->json([
-            'next_id' => $nextId,
-            'formatted' => sprintf("JOB-%s-%04d", date('Ymd'), $nextId)
+            'next_id' => $branchJobCount,
+            'formatted' => $formatted
         ]);
     }
 
@@ -84,10 +102,22 @@ class MechanicController extends Controller
             return response()->json(['error' => 'Search parameter is required.'], 400);
         }
 
-        $customers = Customer::where('id', $query)
-            ->orWhere('id_card_number', $query)
-            ->orWhereHas('vehicles', function($q) use ($query) {
-                $q->where('license_plate', $query);
+        $user = auth()->user();
+        $custQuery = Customer::query();
+
+        if ($user && $user->branch_id && !in_array(strtolower($user->role), ['super_admin', 'superadmin'])) {
+            $custQuery->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)
+                  ->orWhereNull('branch_id');
+            });
+        }
+
+        $customers = $custQuery->where(function ($sub) use ($query) {
+                $sub->where('id', $query)
+                    ->orWhere('id_card_number', $query)
+                    ->orWhereHas('vehicles', function ($q) use ($query) {
+                        $q->where('license_plate', $query);
+                    });
             })
             ->with('vehicles')
             ->get();
@@ -110,20 +140,61 @@ class MechanicController extends Controller
         ];
 
         foreach ($customer->vehicles as $vehicle) {
-            // Find last completed repair
+            // 1. Cari tanggal perbaikan/servis umum terakhir
             $lastRepair = MaintenanceRecord::where('vehicle_id', $vehicle->id)
                 ->where('status', 'completed')
                 ->orderByRaw('COALESCE(end_time, created_at) DESC')
                 ->first();
 
+            // 2. Query mengambil tanggal perbaikan terakhir PER KATEGORI SPAREPART
+            $categoryRepairs = DB::table('maintenance_records as mr')
+                ->join('record_parts_used as rpu', 'mr.id', '=', 'rpu.maintenance_record_id')
+                ->join('inventory as inv', 'rpu.inventory_id', '=', 'inv.id')
+                ->where('mr.vehicle_id', $vehicle->id)
+                ->where('mr.status', 'completed')
+                ->select(
+                    DB::raw('LOWER(TRIM(inv.category)) as category_name'),
+                    DB::raw('MAX(COALESCE(mr.end_time, mr.created_at)) as last_used_time')
+                )
+                ->groupBy(DB::raw('LOWER(TRIM(inv.category))'))
+                ->pluck('last_used_time', 'category_name')
+                ->toArray();
+
+            $categoryMap = [];
+            foreach ($categoryRepairs as $catName => $lastTime) {
+                $cleanKey = strtolower(trim($catName));
+                $categoryMap[$cleanKey] = $lastTime;
+            }
+
+            $findCatTime = function(array $keywords) use ($categoryMap) {
+                foreach ($keywords as $kw) {
+                    foreach ($categoryMap as $catKey => $time) {
+                        if (str_contains($catKey, strtolower($kw))) {
+                            return $time;
+                        }
+                    }
+                }
+                return null;
+            };
+
             $customerData['vehicles'][] = [
                 'vehicle_id' => $vehicle->id,
                 'license_plate' => $vehicle->license_plate,
                 'vehicle_type' => $vehicle->vehicle_type,
-                'frame_number' => $vehicle->vin, // mapped to frame_number in DB?
+                'frame_number' => $vehicle->vin,
                 'controller_number' => $vehicle->controller_number,
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_phone' => $customer->phone,
+                'customer_idcard' => $customer->id_card_number,
                 'last_repair_time' => $lastRepair ? ($lastRepair->end_time ?? $lastRepair->created_at) : null,
-                'category_repairs' => [] // Stubbed for now to save complexity
+                'category_repairs' => [
+                    'tire'    => $findCatTime(['tire', 'ban', 'roda', 'wheel']),
+                    'shock'   => $findCatTime(['shock', 'breaker', 'suspension', 'suspensi', 'peredam', 'absorber']),
+                    'bearing' => $findCatTime(['bearing', 'laher', 'lahar', 'bushing', 'as ']),
+                    'brake'   => $findCatTime(['brake', 'rem', 'kampas', 'pad', 'disc', 'tromol', 'lining']),
+                    'all'     => $categoryMap
+                ]
             ];
         }
 

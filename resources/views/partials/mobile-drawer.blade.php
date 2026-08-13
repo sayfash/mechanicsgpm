@@ -10,7 +10,7 @@
                 <i class="fa-solid fa-infinity text-lg"></i>
             </div>
             <div>
-                <h2 class="text-base font-bold text-slate-100">SGPM MECHANIC</h2>
+                <h2 class="text-base font-bold text-slate-100">SGPM SERVICE CENTER</h2>
                 <p class="text-[10px] text-slate-400 uppercase tracking-widest">Compliance Desk</p>
             </div>
         </div>

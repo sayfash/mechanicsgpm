@@ -6,18 +6,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3.5">
             <div>
                 <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-users text-emerald-400"></i> Registered Customers Directory
+                    <i class="fa-solid fa-users text-emerald-400"></i> <span data-i18n="cust.registered_dir">Registered Customers Directory</span>
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Directory of all client profiles, contact numbers, KTP numbers, and vehicle counts.</p>
+                <p class="text-xs text-slate-400 mt-0.5" data-i18n="cust.registered_dir_desc">Directory of all client profiles, contact numbers, KTP numbers, and vehicle counts.</p>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-                <button onclick="openCustomersCSVModal()"
+                <button onclick="openCustomersCSVModal()" data-permission="edit_customers"
                     class="px-3.5 py-2 bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-excel text-emerald-400"></i> Upload Batch Customers
+                    <i class="fa-solid fa-file-excel text-emerald-400"></i> <span data-i18n="cust.upload_batch">Upload Batch Customers</span>
                 </button>
-                <button onclick="openAddCustomerModal()"
+                <button onclick="openAddCustomerModal()" data-permission="edit_customers"
                     class="px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 shrink-0">
-                    <i class="fa-solid fa-user-plus"></i> Add New Customer
+                    <i class="fa-solid fa-user-plus"></i> <span data-i18n="cust.add_new">Add New Customer</span>
                 </button>
             </div>
         </div>
@@ -37,19 +37,23 @@
             <!-- Branch Filter -->
             <select id="super-admin-customers-branch-filter" onchange="filterCustomersTable()"
                 class="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200">
-                <option value="">All Branches</option>
+                <option value="" data-i18n="table.all_branches">All Branches</option>
             </select>
 
             <!-- Status Filter -->
-            <!--<select id="super-admin-customers-status-filter" onchange="filterCustomersTable()"
+            <select id="super-admin-customers-status-filter" onchange="filterCustomersTable()"
                 class="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-bold">
                 <option value="">All Customer Statuses</option>
-                <option value="Retail">Retail</option>
-                <option value="Fleet">Fleet</option>
                 <option value="Gomolis">Gomolis</option>
+                <option value="Operasional">Operasional</option>
+                <option value="Retail">Retail</option>
+                <option value="Sales">Sales</option>
+                <option value="Cocoride">Cocoride</option>
+                <option value="TPI">TPI</option>
+                <option value="Fleet">Fleet</option>
                 <option value="Gomolis-RF">Gomolis-RF</option>
                 <option value="VIP">VIP</option>
-            </select> -->
+            </select>
 
             <!-- Custom Column Filter Group -->
             <div class="flex items-center gap-2 flex-1 min-w-[240px]">
@@ -61,6 +65,7 @@
                     <option value="id_card_number">ID Card (KTP)</option>
                     <option value="address">Home Address</option>
                     <option value="customer_status">Status</option>
+                    <option value="warranty_category">Warranty Category</option>
                 </select>
                 <input type="text" id="super-admin-customers-column-val" oninput="filterCustomersTable()"
                     placeholder="Value..."
@@ -70,7 +75,7 @@
             <!-- Sort Control -->
             <div class="flex items-center gap-2 flex-1 min-w-[200px]">
                 <span class="text-xs text-slate-400 font-semibold uppercase flex items-center gap-1.5 shrink-0"><i
-                        class="fa-solid fa-arrow-down-short-wide text-emerald-400"></i>Sort:</span>
+                        class="fa-solid fa-arrow-down-short-wide text-emerald-400"></i><span data-i18n="table.sort">Sort:</span></span>
                 <select id="super-admin-customers-sort-select" onchange="filterCustomersTable()"
                     class="w-full flex-1 min-w-[130px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-medium">
                     <option value="id-desc">ID (Newest First)</option>
@@ -86,14 +91,14 @@
                 <button type="button" id="btn-cust-column-toggle" onclick="toggleCustColumnMenu(event)"
                     class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-semibold hover:bg-slate-800 transition flex items-center justify-between gap-2 shadow-sm">
                     <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-columns text-emerald-400"></i> Columns
+                        <i class="fa-solid fa-columns text-emerald-400"></i> <span data-i18n="table.columns">Columns</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                 </button>
                 <div id="cust-column-menu" class="hidden absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/95 backdrop-blur-xl border border-slate-800 shadow-2xl p-3 z-[100] text-xs space-y-2">
                         <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-1">
-                            <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">Show / Hide Columns</span>
-                            <button type="button" onclick="resetCustColumns()" class="text-[10px] text-emerald-400 hover:underline font-semibold">Select All</button>
+                            <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]" data-i18n="table.show_hide_columns">Show / Hide Columns</span>
+                            <button type="button" onclick="resetCustColumns()" class="text-[10px] text-emerald-400 hover:underline font-semibold" data-i18n="table.select_all">Select All</button>
                         </div>
                         <div class="space-y-1.5 max-h-60 overflow-y-auto custom-scrollbar">
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
@@ -102,27 +107,39 @@
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="name" checked onchange="toggleCustColumn('name', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>Customer Name</span>
+                                <span data-i18n="shop.cust_name">Customer Name</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="phone" checked onchange="toggleCustColumn('phone', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>Phone Number</span>
+                                <span data-i18n="shop.cust_phone">Phone Number</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="id_card" checked onchange="toggleCustColumn('id_card', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>ID Card Number</span>
+                                <span data-i18n="shop.id_card_num">ID Card Number</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
+                                <input type="checkbox" data-cust-col="customer_status" checked onchange="toggleCustColumn('customer_status', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
+                                <span data-i18n="shop.cust_status">Status</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
+                                <input type="checkbox" data-cust-col="branch" checked onchange="toggleCustColumn('branch', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
+                                <span data-i18n="shop.branch">Branch</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="address" checked onchange="toggleCustColumn('address', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>Home Address</span>
+                                <span data-i18n="shop.cust_address">Home Address</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="vehicles" checked onchange="toggleCustColumn('vehicles', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>Vehicles</span>
+                                <span data-i18n="cust.vehicles">Vehicles</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
+                                <input type="checkbox" data-cust-col="warranty_category" checked onchange="toggleCustColumn('warranty_category', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
+                                <span data-i18n="shop.warranty_category">Warranty Category</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                                 <input type="checkbox" data-cust-col="actions" checked onchange="toggleCustColumn('actions', this.checked)" class="w-3.5 h-3.5 accent-emerald-500 rounded bg-slate-900 border-slate-700">
-                                <span>Actions</span>
+                                <span data-i18n="table.actions">Actions</span>
                             </label>
                         </div>
                     </div>
@@ -141,12 +158,15 @@
                     <tr id="super-admin-customers-thead-tr"
                         class="bg-slate-900 text-slate-400 border-b border-slate-800 font-semibold uppercase tracking-wider text-[10px] text-center">
                         <th class="p-3 w-20 text-center">Cust ID</th>
-                        <th class="p-3 w-44 text-center">Customer Name</th>
-                        <th class="p-3 w-32 text-center">Phone Number</th>
-                        <th class="p-3 w-36 text-center">ID Card Number</th>
-                        <th class="p-3 min-w-[200px] text-center">Home Address</th>
-                        <th class="p-3 w-24 text-center">Vehicles</th>
-                        <th class="p-3 w-28 text-center">Actions</th>
+                        <th class="p-3 w-44 text-center" data-i18n="shop.cust_name">Customer Name</th>
+                        <th class="p-3 w-32 text-center" data-i18n="shop.cust_phone">Phone Number</th>
+                        <th class="p-3 w-36 text-center" data-i18n="shop.id_card_num">ID Card Number</th>
+                        <th class="p-3 w-28 text-center" data-i18n="shop.cust_status">Status</th>
+                        <th class="p-3 w-28 text-center" data-i18n="shop.branch">Branch</th>
+                        <th class="p-3 min-w-[200px] text-center" data-i18n="shop.cust_address">Home Address</th>
+                        <th class="p-3 w-24 text-center" data-i18n="cust.vehicles">Vehicles</th>
+                        <th class="p-3 w-32 text-center" data-i18n="shop.warranty_category">Warranty Category</th>
+                        <th class="p-3 w-28 text-center" data-i18n="table.actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="super-admin-customers-tbody"

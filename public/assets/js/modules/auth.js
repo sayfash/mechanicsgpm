@@ -5,7 +5,7 @@
 async function fetchMe() {
     try {
         const data = await request('me', {}, 'GET');
-        if (data.logged_in) {
+        if (data && data.logged_in) {
             AppStore.user = data.user;
         } else {
             AppStore.user = null;
@@ -18,8 +18,9 @@ window.fetchMe = fetchMe;
 
 async function fetchBranches() {
     try {
-        const data = await request('get_branches', {}, 'GET');
-        AppStore.branches = data || [];
+        const raw = await request('get_branches', {}, 'GET');
+        const data = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.data) ? raw.data : []);
+        AppStore.branches = data;
 
         const mSelect = document.getElementById('mechanic-branch-select');
         const rSelect = document.getElementById('reg-branch');
@@ -55,9 +56,7 @@ async function handleLogin(e) {
         AppStore.user = data.user;
         showToast(data.message, 'success');
 
-        if (document.getElementById('login-username')) document.getElementById('login-username').value = '';
-        if (document.getElementById('login-password')) document.getElementById('login-password').value = '';
-
+        localStorage.removeItem('sgpm_last_route');
         if (typeof initializeApp === 'function') await initializeApp();
     } catch (err) {
         showToast(err.message, 'error');
@@ -107,6 +106,7 @@ window.handleForgotPasswordSubmit = handleForgotPasswordSubmit;
 function openProfileModal() {
     const modal = document.getElementById('profile-modal');
     const usernameDisplay = document.getElementById('modal-profile-username-display');
+    const usernameHandle = document.getElementById('modal-profile-username-handle');
     const displayNameInput = document.getElementById('profile-new-display-name');
     const oldPasswordInput = document.getElementById('profile-old-password');
     const newPasswordInput = document.getElementById('profile-new-password');
@@ -117,7 +117,8 @@ function openProfileModal() {
     if (!modal) return;
 
     if (AppStore.user) {
-        if (usernameDisplay) usernameDisplay.innerText = AppStore.user.username;
+        if (usernameDisplay) usernameDisplay.innerText = AppStore.user.display_name || AppStore.user.username;
+        if (usernameHandle) usernameHandle.innerText = '@' + AppStore.user.username;
         if (displayNameInput) displayNameInput.value = AppStore.user.display_name || '';
 
         if (AppStore.user.profile_picture) {
@@ -186,22 +187,31 @@ async function handleProfileUpdate(e) {
     try {
         const formData = new FormData();
         formData.append('action', 'update_profile');
-        if (newDisplayName) formData.append('display_name', newDisplayName);
+        if (newDisplayName) {
+            formData.append('new_display_name', newDisplayName);
+            formData.append('display_name', newDisplayName);
+        }
         if (oldPassword) formData.append('old_password', oldPassword);
         if (newPassword) formData.append('new_password', newPassword);
         if (pictureFile) formData.append('profile_picture', pictureFile);
 
         const res = await requestFormData(formData);
-        showToast(res.message, 'success');
+        showToast(res.message || 'Profile updated successfully.', 'success');
 
-        // Update frontend state username and picture
-        AppStore.user.display_name = res.display_name;
-        // Ensure profile_picture can be null without breaking UI
-        AppStore.user.profile_picture = res.profile_picture || null;
+        const updatedDisplayName = res.display_name || newDisplayName;
+        if (AppStore.user) {
+            AppStore.user.display_name = updatedDisplayName;
+            AppStore.user.profile_picture = res.profile_picture || AppStore.user.profile_picture || null;
+        }
+
         const nameEl = document.getElementById('user-display-name');
-        if (nameEl) nameEl.innerText = res.display_name;
-        updateProfilePictureUI();
+        if (nameEl) nameEl.innerText = updatedDisplayName;
+        const dropdownNameEl = document.getElementById('dropdown-user-name');
+        if (dropdownNameEl) dropdownNameEl.innerText = updatedDisplayName;
+        const mobileDropdownNameEl = document.getElementById('mobile-dropdown-user-name');
+        if (mobileDropdownNameEl) mobileDropdownNameEl.innerText = updatedDisplayName;
 
+        updateProfilePictureUI();
         closeProfileModal();
     } catch (err) {
         showToast(err.message, 'error');

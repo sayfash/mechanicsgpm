@@ -3,7 +3,7 @@
     class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 items-center justify-center hidden">
     <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
         <h3 class="text-lg font-bold text-slate-100 mb-2">Edit Profile Settings</h3>
-        <p class="text-xs text-slate-400 mb-4">Modify display name (username) and change security keys.</p>
+        <p class="text-xs text-slate-400 mb-4">Modify your display name, avatar picture, and security password.</p>
 
         <!-- Current Profile Preview Badge -->
         <div class="flex items-center gap-4 mb-4 p-3 bg-slate-900/40 rounded-xl border border-slate-800/60">
@@ -14,8 +14,12 @@
                     alt="Avatar Preview">
             </div>
             <div>
-                <div id="modal-profile-username-display" class="text-sm font-bold text-slate-200">sysadmin</div>
-                <div class="text-xs text-slate-400">Allowed: JPG, PNG, GIF, WEBP (Max 1MB)</div>
+                <div id="modal-profile-username-display" class="text-sm font-bold text-slate-200">System User</div>
+                <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                    <span>Username:</span>
+                    <span id="modal-profile-username-handle" class="text-blue-400 font-semibold">@sysadmin</span>
+                    <span class="text-[10px] text-slate-500 bg-slate-800 px-1.5 py-0.5 rounded">(read-only)</span>
+                </div>
             </div>
         </div>
 
@@ -23,7 +27,7 @@
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Display Name</label>
                 <input type="text" id="profile-new-display-name" required
-                    class="w-full px-3 py-2 rounded-lg text-sm" placeholder="Display Name">
+                    class="w-full px-3 py-2 rounded-lg text-sm" placeholder="e.g. John Doe">
             </div>
 
             <div>

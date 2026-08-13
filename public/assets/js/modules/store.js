@@ -19,6 +19,33 @@ function formatIDR(val) {
 }
 window.formatIDR = formatIDR;
 
+function formatIndonesianDate(dateInput, includeTime = true) {
+    if (!dateInput) return 'N/A';
+    const d = parseTimestampToDate ? parseTimestampToDate(dateInput) : new Date(dateInput);
+    if (!d || isNaN(d.getTime())) return 'N/A';
+
+    const lang = (typeof getAppLanguage === 'function' ? getAppLanguage() : 'id');
+    const locale = lang === 'en' ? 'en-US' : 'id-ID';
+    const tzSuffix = lang === 'en' ? ' WIB' : ' WIB';
+
+    if (includeTime) {
+        return d.toLocaleString(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }) + tzSuffix;
+    }
+    return d.toLocaleDateString(locale, {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+window.formatIndonesianDate = formatIndonesianDate;
+
 function formatJobCode(id, dateStr = null) {
     if (!id) return 'N/A';
     let datePart = '';
@@ -39,12 +66,52 @@ function formatJobCode(id, dateStr = null) {
 }
 window.formatJobCode = formatJobCode;
 
+function parseTimestampToDate(ts) {
+    if (!ts) return null;
+    if (ts instanceof Date) return ts;
+    const str = String(ts).trim();
+    if (!str || str === 'null' || str === 'undefined') return null;
+
+    if (str.includes('Z') || (str.includes('T') && (str.includes('+') || (str.lastIndexOf('-') > 10)))) {
+        const d = new Date(str);
+        if (!isNaN(d.getTime())) return d;
+    }
+
+    const cleaned = str.replace('T', ' ').replace(/\.\d+/, '');
+    const parts = cleaned.split(/[- :]/);
+    if (parts.length >= 6) {
+        return new Date(
+            parseInt(parts[0]),
+            parseInt(parts[1]) - 1,
+            parseInt(parts[2]),
+            parseInt(parts[3]),
+            parseInt(parts[4]),
+            parseInt(parts[5])
+        );
+    } else if (parts.length === 3) {
+        const now = new Date();
+        return new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            parseInt(parts[0]),
+            parseInt(parts[1]),
+            parseInt(parts[2])
+        );
+    }
+
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+}
+window.parseTimestampToDate = parseTimestampToDate;
+
 var defaultInvCols = {
     branch: true,
     sku: true,
     part_name: true,
     description: true,
     category: true,
+    warranty_category: true,
     connected_service: true,
     available_qty: true,
     price: true,
@@ -60,6 +127,8 @@ var defaultVehCols = {
     vin: true,
     engine: true,
     controller: true,
+    activate_date: true,
+    branch: true,
     owner: true,
     actions: true
 };
@@ -80,24 +149,33 @@ const AppStore = {
     selectedIntakeVehicle: null,
     selectedStopRecordId: null,
     partsUsedAccumulator: [],
+    mechAccumulatedParts: [],
+    mechAccumulatedServices: [],
+    mechAccumulatedOtherServices: [],
+    mechCustomerType: 'internal',
     mechanicInProgress: false,
     superAdminActiveTab: 'stats',
     chartInstance: null,
     invColumnVisibility: { ...defaultInvCols },
     vehColumnVisibility: { ...defaultVehCols },
     pagination: {
+        partsHistoryMonthlyPage: 1,
         shopInventory: { page: 1, limit: 25, custom: '' },
         globalInventory: { page: 1, limit: 25, custom: '' },
         auditLogs: { page: 1, limit: 25, custom: '' },
         maintenanceRecords: { page: 1, limit: 25, custom: '' },
-        vehicles: { page: 1, limit: 25, custom: '' }
+        shopMaintenanceRecords: { page: 1, limit: 25, custom: '' },
+        vehicles: { page: 1, limit: 25, custom: '' },
+        customers_table: { page: 1, limit: 25, custom: '' }
     }
 };
 window.AppStore = AppStore;
 
 function getPageSize(key) {
+    if (!AppStore.pagination[key]) {
+        AppStore.pagination[key] = { page: 1, limit: 25, custom: '' };
+    }
     const state = AppStore.pagination[key];
-    if (!state) return 25;
     if (state.limit === 'custom') {
         const parsed = parseInt(state.custom);
         return (!isNaN(parsed) && parsed > 0) ? parsed : 25;
@@ -204,6 +282,7 @@ async function request(action, params = {}, method = 'POST') {
         'add_customer_and_vehicle': { url: '/api/customers/register-with-vehicle', method: 'POST' },
         'submit_mechanic_job': { url: '/api/jobs/submit', method: 'POST' },
         'start_job': { url: '/api/jobs/start', method: 'POST' },
+        'cancel_active_job': { url: '/api/jobs/cancel', method: 'POST' },
         'add_inventory': { url: '/api/inventory', method: 'POST' },
         'edit_inventory': { url: '/api/inventory', method: 'PUT' },
         'delete_inventory': { url: '/api/inventory', method: 'DELETE' },
@@ -228,6 +307,7 @@ async function request(action, params = {}, method = 'POST') {
         'lookup_customer_by_id_card': { url: '/api/mechanic/lookup-customer', method: 'GET' },
         'get_customer_maintenance_records': { url: '/api/maintenance-records', method: 'GET' },
         'get_all_maintenance_records': { url: '/api/maintenance-records', method: 'GET' },
+        'export_shop_maintenance_records': { url: '/api/maintenance-records/export', method: 'GET' },
         'edit_maintenance_record': { url: '/api/maintenance-records', method: 'PUT' },
         'delete_maintenance_record': { url: '/api/maintenance-records', method: 'DELETE' },
         'get_sparepart_categories': { url: '/api/sparepart-categories', method: 'GET' },
@@ -264,7 +344,10 @@ async function request(action, params = {}, method = 'POST') {
         'delete_sparepart_category': { url: '/api/sparepart-categories', method: 'DELETE' },
         'import_excel_maintenance_records': { url: '/api/maintenance-records/batch', method: 'POST' },
         'bind_vehicle_customer': { url: '/api/vehicles/bind-customer', method: 'POST' },
-        'edit_audit_log': { url: '/api/audit-logs', method: 'PUT' }
+        'rebind_vehicles': { url: '/api/vehicles/rebind', method: 'POST' },
+        'edit_audit_log': { url: '/api/audit-logs', method: 'PUT' },
+        'get_reports_summary': { url: '/api/reports/summary', method: 'GET' },
+        'reports/summary': { url: '/api/reports/summary', method: 'GET' }
     };
 
     const route = legacyRoutes[action];
@@ -293,11 +376,23 @@ async function request(action, params = {}, method = 'POST') {
 window.request = request;
 
 async function requestFormData(formData) {
+    const action = formData.get('action');
+    const legacyRoutes = {
+        'update_profile': { url: '/api/update-profile' }
+    };
+    const route = legacyRoutes[action];
+    const url = route ? route.url : '/api/legacy';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
     const options = {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': csrfToken || '',
+            'Accept': 'application/json'
+        }
     };
-    return fetch('/api/legacy', options).then(r => handleFetchResponse(r));
+    return fetch(url, options).then(r => handleFetchResponse(r));
 }
 window.requestFormData = requestFormData;
 
@@ -349,46 +444,53 @@ window.getCategoryOptionsHtml = getCategoryOptionsHtml;
 // Database-Driven Role & Permission Security Engine (RBAC)
 // -------------------------------------------------------------
 
-const APP_NAV_ROUTES = [
-    {
-        group: 'Main Menu',
-        items: [
-            { id: 'stats', label: 'Dashboard Metrics', icon: 'fa-chart-line', permission: 'view_stats' }
-        ]
-    },
-    {
-        group: 'Mechanic Workstation',
-        items: [
-            { id: 'mechanic-review', label: 'Checklist Verification', icon: 'fa-clipboard-check', permission: 'view_mechanic_workstation' },
-            { id: 'mechanic-history', label: 'My Repair History', icon: 'fa-clock-rotate-left', permission: 'view_mechanic_workstation' }
-        ]
-    },
-    {
-        group: 'Shop Administration',
-        items: [
-            { id: 'shop-intake', label: 'Intake & Repair Sheet', icon: 'fa-file-signature', permission: 'view_shop_intake' },
-            { id: 'shop-inventory', label: 'Live Inventory Stock', icon: 'fa-boxes-stacked', permission: 'view_shop_inventory' },
-            { id: 'shop-history', label: 'Spare Part Usage History', icon: 'fa-clock-rotate-left', permission: 'view_shop_history' }
-        ]
-    },
-    {
-        group: 'Global Management',
-        items: [
-            { id: 'inventory', label: 'Global Inventory Master', icon: 'fa-boxes-stacked', permission: 'view_global_inventory' },
-            { id: 'maintenance', label: 'Maintenance Records', icon: 'fa-clipboard-list', permission: 'view_maintenance' },
-            { id: 'vehicles', label: 'Vehicles Directory', icon: 'fa-motorcycle', permission: 'view_vehicles' },
-            { id: 'customers', label: 'Customers Directory', icon: 'fa-users', permission: 'view_customers' },
-            { id: 'management', label: 'Data Management', icon: 'fa-sliders', permission: 'view_management' }
-        ]
-    },
-    {
-        group: 'Compliance',
-        items: [
-            { id: 'logs', label: 'Audit Logs', icon: 'fa-shield-halved', permission: 'view_logs' }
-        ]
-    }
-];
-window.APP_NAV_ROUTES = APP_NAV_ROUTES;
+function getNavRoutes() {
+    return [
+        {
+            group: t('nav.main_menu', 'Reports'),
+            items: [
+                { id: 'stats', label: t('nav.dashboard_metrics', 'Dashboard Metrics'), icon: 'fa-chart-line', permission: 'view_stats' },
+                { id: 'reports', label: t('nav.reports_module', 'Reports & Analytics'), icon: 'fa-chart-pie', permission: 'view_reports' }
+            ]
+        },
+        {
+            group: t('nav.mechanic_workstation', 'Mechanic Workstation'),
+            items: [
+                { id: 'mechanic-review', label: t('nav.checklist_verification', 'Checklist Verification'), icon: 'fa-clipboard-check', permission: 'view_mechanic_workstation' },
+                { id: 'mechanic-history', label: t('nav.my_repair_history', 'My Repair History'), icon: 'fa-clock-rotate-left', permission: 'view_mechanic_workstation' }
+            ]
+        },
+        {
+            group: t('nav.shop_admin', 'Shop Administration'),
+            items: [
+                { id: 'shop-intake', label: t('nav.shop_intake', 'Intake & Repair Sheet'), icon: 'fa-file-signature', permission: 'view_shop_intake' },
+                { id: 'shop-active-job', label: t('nav.active_job_details', 'Active Job Details'), icon: 'fa-wrench', permission: 'view_shop_intake' },
+                { id: 'shop-maintenance', label: t('nav.branch_maintenance_records', 'Branch Maintenance Records'), icon: 'fa-clipboard-list', permission: 'view_shop_records' },
+                { id: 'shop-review', label: t('nav.customer_history_logs', 'Customer History Logs'), icon: 'fa-clipboard-check', permission: 'view_shop_records' },
+                { id: 'shop-inventory', label: t('nav.live_inventory_stock', 'Live Inventory Stock'), icon: 'fa-boxes-stacked', permission: 'view_shop_inventory' },
+                { id: 'shop-history', label: t('nav.spare_part_usage_history', 'Spare Part Usage History'), icon: 'fa-clock-rotate-left', permission: 'view_parts_history' }
+            ]
+        },
+        {
+            group: t('nav.global_management', 'Global Management'),
+            items: [
+                { id: 'maintenance', label: t('nav.maintenance_records', 'Maintenance Records'), icon: 'fa-clipboard-list', permission: 'view_maintenance' },
+                { id: 'inventory', label: t('nav.global_inventory_master', 'Global Inventory Master'), icon: 'fa-boxes-stacked', permission: 'view_global_inventory' },
+                { id: 'vehicles', label: t('nav.vehicles_directory', 'Vehicles Directory'), icon: 'fa-motorcycle', permission: 'view_vehicles' },
+                { id: 'customers', label: t('nav.customers_directory', 'Customers Directory'), icon: 'fa-users', permission: 'view_customers' },
+                { id: 'management', label: t('nav.data_management', 'Data Management'), icon: 'fa-sliders', permission: 'view_management' }
+            ]
+        },
+        {
+            group: t('nav.compliance', 'Compliance'),
+            items: [
+                { id: 'logs', label: t('nav.audit_logs', 'Audit Logs'), icon: 'fa-shield-halved', permission: 'view_logs' }
+            ]
+        }
+    ];
+}
+window.getNavRoutes = getNavRoutes;
+window.APP_NAV_ROUTES = getNavRoutes();
 
 function hasPermission(permission) {
     if (!AppStore.user) return false;
@@ -400,14 +502,21 @@ function hasPermission(permission) {
 
     const ROLE_PERMISSIONS = {
         'super_admin': [
-            'view_stats', 'view_global_inventory', 'edit_inventory', 'delete_inventory',
+            'view_stats', 'view_reports', 'view_global_inventory', 'edit_inventory', 'delete_inventory',
             'view_maintenance', 'edit_maintenance', 'delete_maintenance',
             'view_vehicles', 'edit_vehicles', 'delete_vehicles',
             'view_customers', 'edit_customers', 'delete_customers',
             'view_management', 'edit_management', 'view_logs', 'export_data'
         ],
+        'manager': [
+            'view_stats', 'view_reports', 'view_global_inventory', 'view_maintenance',
+            'view_vehicles', 'view_customers', 'export_data'
+        ],
         'shop_admin': [
-            'view_shop_inventory', 'view_shop_history', 'edit_inventory', 'view_shop_intake', 'create_job', 'edit_job'
+            'view_shop_inventory', 'view_parts_history', 'view_shop_records', 'edit_inventory', 'view_shop_intake', 'create_job', 'edit_job'
+        ],
+        'inventory_admin': [
+            'view_shop_inventory', 'view_parts_history', 'edit_inventory'
         ],
         'mechanic': [
             'view_mechanic_workstation', 'edit_job'
@@ -434,6 +543,7 @@ window.canUserAccessRoute = canUserAccessRoute;
 
 function getDefaultUserRoute() {
     if (!AppStore.user) return 'auth-gate';
+    if (AppStore.user.role === 'inventory_admin') return 'shop-inventory';
     if (AppStore.user.role === 'shop_admin') return 'shop-intake';
     if (AppStore.user.role === 'mechanic') return 'mechanic-review';
     if (hasPermission('view_stats')) return 'stats';
@@ -482,62 +592,225 @@ function showToast(message, type = 'success', duration = 4000) {
 }
 window.showToast = showToast;
 
+let themeLabelTimeout = null;
+
+function syncThemeUI(isDark, animate = true) {
+    const pill = document.getElementById('dark-mode-toggle-pill');
+    const circle = document.getElementById('dark-mode-toggle-circle');
+    const icon = document.getElementById('theme-toggle-icon');
+    const label = document.getElementById('theme-toggle-label');
+
+    const mPill = document.getElementById('mobile-dark-mode-toggle-pill');
+    const mCircle = document.getElementById('mobile-dark-mode-toggle-circle');
+    const mIcon = document.getElementById('mobile-theme-toggle-icon');
+    const mLabel = document.getElementById('mobile-theme-toggle-label');
+
+    // 1. Immediately slide the toggle knobs & change pill track colors
+    if (circle) {
+        circle.style.transform = isDark ? 'translateX(20px)' : 'translateX(0px)';
+    }
+    if (pill) {
+        pill.className = isDark
+            ? 'w-11 h-6 bg-blue-600 rounded-full p-1 transition-colors duration-300 relative flex items-center pointer-events-none'
+            : 'w-11 h-6 bg-slate-300 rounded-full p-1 transition-colors duration-300 relative flex items-center pointer-events-none';
+    }
+
+    if (mCircle) {
+        mCircle.style.transform = isDark ? 'translateX(20px)' : 'translateX(0px)';
+    }
+    if (mPill) {
+        mPill.className = isDark
+            ? 'w-11 h-6 bg-blue-600 rounded-full p-1 transition-colors duration-300 relative flex items-center pointer-events-none'
+            : 'w-11 h-6 bg-slate-700 rounded-full p-1 transition-colors duration-300 relative flex items-center pointer-events-none';
+    }
+
+    // 2. Only change the label and icon AFTER sliding (duration: 300ms)
+    const updateLabels = () => {
+        const iconClass = isDark ? 'fa-solid fa-moon text-blue-400 w-4 text-center mr-0' : 'fa-solid fa-sun text-amber-500 w-4 text-center mr-0';
+        const mIconClass = isDark ? 'fa-solid fa-moon text-blue-400 text-xs w-4 text-center shrink-0 mr-0' : 'fa-solid fa-sun text-amber-500 text-xs w-4 text-center shrink-0 mr-0';
+        const text = isDark ? 'Dark Mode' : 'Light Mode';
+
+        if (icon) icon.className = iconClass;
+        if (label) {
+            label.innerText = text;
+            label.className = isDark ? 'text-slate-200' : 'text-slate-700';
+        }
+
+        if (mIcon) mIcon.className = mIconClass;
+        if (mLabel) {
+            mLabel.innerText = text;
+            mLabel.className = isDark ? 'text-xs text-left text-slate-200' : 'text-xs text-left text-slate-700';
+        }
+    };
+
+    if (themeLabelTimeout) clearTimeout(themeLabelTimeout);
+
+    if (animate) {
+        themeLabelTimeout = setTimeout(updateLabels, 300);
+    } else {
+        updateLabels();
+    }
+}
+
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || localStorage.getItem('sgpm_theme');
     let theme = savedTheme;
     if (!theme) {
-        theme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark';
+        theme = 'light';
     }
-    const switchEl = document.getElementById('theme-toggle-switch');
-    const icon = document.getElementById('theme-toggle-icon');
+    const isDark = theme === 'dark';
 
-    if (theme === 'light') {
+    if (!isDark) {
         document.body.classList.add('light-mode');
-        if (switchEl) switchEl.checked = false;
-        if (icon) {
-            icon.className = 'fa-solid fa-sun text-amber-500';
-        }
+        document.documentElement.classList.remove('dark');
     } else {
         document.body.classList.remove('light-mode');
-        if (switchEl) switchEl.checked = true;
-        if (icon) {
-            icon.className = 'fa-solid fa-moon text-blue-400';
-        }
+        document.documentElement.classList.add('dark');
     }
+    syncThemeUI(isDark, false);
 }
 window.initTheme = initTheme;
 
 function toggleThemeMode(e) {
-    if (e) e.stopPropagation();
-    const isLight = document.body.classList.toggle('light-mode');
-    const switchEl = document.getElementById('theme-toggle-switch');
-    const icon = document.getElementById('theme-toggle-icon');
-
-    if (isLight) {
-        localStorage.setItem('theme', 'light');
-        if (switchEl) switchEl.checked = false;
-        if (icon) {
-            icon.className = 'fa-solid fa-sun text-amber-500';
-        }
-        showToast('Light mode activated', 'info');
-    } else {
-        localStorage.setItem('theme', 'dark');
-        if (switchEl) switchEl.checked = true;
-        if (icon) {
-            icon.className = 'fa-solid fa-moon text-blue-400';
-        }
-        showToast('Dark mode activated', 'info');
+    if (e) {
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
     }
+    const isLight = document.body.classList.toggle('light-mode');
+    const isDark = !isLight;
+
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        localStorage.setItem('sgpm_theme', 'dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('theme', 'light');
+        localStorage.setItem('sgpm_theme', 'light');
+    }
+
+    syncThemeUI(isDark, true);
+    if (typeof window.updateChartsThemeColors === 'function') {
+        window.updateChartsThemeColors();
+    }
+    showToast(`Switched to ${isDark ? 'Dark' : 'Light'} Mode`, 'info');
 }
 window.toggleThemeMode = toggleThemeMode;
 
-function showToast(message, type = 'success', duration = 4000) {
-    const toastEl = document.getElementById('toast');
-    // Guard against missing element
-    if (!toastEl) return;   // <-- new line
-
-    toastEl.className = `toast toast-${type}`;
-    toastEl.innerText = message;
-    toastEl.style.display = 'block';
-    setTimeout(() => toastEl.style.display = 'none', duration);
+function getAppLanguage() {
+    return localStorage.getItem('sgpm_lang') || 'en';
 }
+window.getAppLanguage = getAppLanguage;
+
+function applyDOMTranslations() {
+    if (typeof t !== 'function') return;
+    const lang = (typeof getAppLanguage === 'function' ? getAppLanguage() : 'en');
+
+    // 1. Explicit data-i18n attributes
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) {
+            const translation = t(key, el.innerText.trim());
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.placeholder = translation;
+            } else {
+                el.innerText = translation;
+            }
+        }
+    });
+
+    // 2. Scan all UI headings, buttons, table headers, labels, and option text
+    const selectors = 'h1, h2, h3, h4, h5, button, th, label, span.sidebar-label, span.sidebar-section-title, option';
+    document.querySelectorAll(selectors).forEach(el => {
+        // Skip user dynamic data containers or inputs with user content
+        if (el.closest('#shop-admin-inventory-tbody') || 
+            el.closest('#super-admin-inventory-tbody') || 
+            el.closest('#parts-history-list-tbody') || 
+            el.closest('#global-parts-history-list-tbody') || 
+            el.closest('#super-admin-logs-tbody') ||
+            el.closest('#customers-tbody') ||
+            el.closest('#vehicles-tbody') ||
+            el.closest('#maintenance-tbody')) {
+            return;
+        }
+
+        const rawText = el.innerText ? el.innerText.trim() : '';
+        if (!rawText) return;
+
+        if (lang === 'id' && window.staticUiMap && window.staticUiMap[rawText]) {
+            el.innerText = window.staticUiMap[rawText];
+        } else if (lang === 'en' && window.staticUiMap) {
+            for (const enKey in window.staticUiMap) {
+                if (window.staticUiMap[enKey] === rawText) {
+                    el.innerText = enKey;
+                    break;
+                }
+            }
+        }
+    });
+
+    // 3. Translate search input placeholders
+    document.querySelectorAll('input[type="text"]').forEach(el => {
+        const p = el.placeholder ? el.placeholder.trim() : '';
+        if (!p) return;
+
+        if (lang === 'id' && window.staticUiMap && window.staticUiMap[p]) {
+            el.placeholder = window.staticUiMap[p];
+        } else if (lang === 'en' && window.staticUiMap) {
+            for (const enKey in window.staticUiMap) {
+                if (window.staticUiMap[enKey] === p) {
+                    el.placeholder = enKey;
+                    break;
+                }
+            }
+        }
+    });
+}
+window.applyDOMTranslations = applyDOMTranslations;
+
+function setAppLanguage(lang) {
+    localStorage.setItem('sgpm_lang', lang);
+    const htmlEl = document.documentElement;
+    if (lang === 'en') {
+        htmlEl.setAttribute('lang', 'en-US');
+    } else {
+        htmlEl.setAttribute('lang', 'id-ID');
+    }
+
+    // Sync dropdown selects
+    const selects = document.querySelectorAll('#app-language-select');
+    selects.forEach(s => s.value = lang);
+
+    applyDOMTranslations();
+
+    // Re-render active views and sidebar navigation
+    window.APP_NAV_ROUTES = (typeof getNavRoutes === 'function') ? getNavRoutes() : window.APP_NAV_ROUTES;
+    if (typeof renderRoleBasedNavigation === 'function') renderRoleBasedNavigation();
+    if (typeof filterPartsHistory === 'function') filterPartsHistory();
+    if (typeof filterGlobalPartsHistory === 'function') filterGlobalPartsHistory();
+    if (typeof filterShopAdminInventory === 'function') filterShopAdminInventory();
+    if (typeof filterGlobalInventory === 'function') filterGlobalInventory();
+    const currentRoute = localStorage.getItem('sgpm_last_route') || (typeof getDefaultUserRoute === 'function' ? getDefaultUserRoute() : '');
+    if (currentRoute && typeof setActiveNavRoute === 'function') setActiveNavRoute(currentRoute);
+
+    if (typeof loadSuperAdminStats === 'function') loadSuperAdminStats();
+
+    const langName = lang === 'en' ? 'English (US)' : 'Bahasa Indonesia';
+    showToast(`Bahasa diubah ke ${langName}`, 'info');
+}
+window.setAppLanguage = setAppLanguage;
+
+function initLanguage() {
+    const lang = getAppLanguage();
+    const htmlEl = document.documentElement;
+    if (lang === 'en') {
+        htmlEl.setAttribute('lang', 'en-US');
+    } else {
+        htmlEl.setAttribute('lang', 'id-ID');
+    }
+
+    const selects = document.querySelectorAll('#app-language-select');
+    selects.forEach(s => s.value = lang);
+    applyDOMTranslations();
+}
+window.initLanguage = initLanguage;

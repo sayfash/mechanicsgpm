@@ -16,6 +16,8 @@ class AuditLog extends Model
         'user_id',
         'action_type',
         'target_table',
+        'module_location',
+        'action_summary',
         'record_id',
         'old_value',
         'new_value',

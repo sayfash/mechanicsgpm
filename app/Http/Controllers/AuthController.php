@@ -50,7 +50,7 @@ class AuthController extends Controller
     {
         $user = $request->user();
         if (!$user) {
-            return response()->json(['error' => 'Not authenticated.'], 401);
+            return response()->json(['logged_in' => false, 'user' => null], 200);
         }
 
         return response()->json([
@@ -74,7 +74,8 @@ class AuthController extends Controller
 
         // Validate inputs, including optional profile picture upload
         $request->validate([
-            'new_display_name' => 'required|string|max:100',
+            'new_display_name' => 'nullable|string|max:100',
+            'display_name' => 'nullable|string|max:100',
             'old_password' => 'nullable|string',
             'new_password' => 'nullable|string|min:6',
             'profile_picture' => 'nullable|image|max:1024', // max 1MB
@@ -88,8 +89,11 @@ class AuthController extends Controller
             $user->password_hash = Hash::make($request->new_password);
         }
 
-        // Update display name
-        $user->display_name = $request->new_display_name;
+        // Update display name (username remains fixed and cannot be changed)
+        $displayName = $request->new_display_name ?? $request->display_name;
+        if ($displayName) {
+            $user->display_name = $displayName;
+        }
 
         // Handle optional profile picture upload
         if ($request->hasFile('profile_picture')) {

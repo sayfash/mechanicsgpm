@@ -12,15 +12,34 @@ class BranchController extends Controller
      */
     public function index(Request $request)
     {
-        $branches = Branch::orderBy('id', 'asc')->get();
+        $branches = \Illuminate\Support\Facades\Cache::remember('branches_list', 3600, function () {
+            return Branch::select('id', 'name', 'abbreviation', 'created_at', 'updated_at')->orderBy('id', 'asc')->get()->toArray();
+        });
+
+        // Guard against corrupted cache (e.g. __PHP_Incomplete_Class)
+        if (!is_array($branches) || (isset($branches['__PHP_Incomplete_Class_Name']))) {
+            \Illuminate\Support\Facades\Cache::forget('branches_list');
+            $branches = Branch::select('id', 'name', 'abbreviation', 'created_at', 'updated_at')->orderBy('id', 'asc')->get()->toArray();
+            \Illuminate\Support\Facades\Cache::put('branches_list', $branches, 3600);
+        }
+
         return response()->json($branches);
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string|max:100|unique:branches,name']);
+        $request->validate([
+            'name' => 'required|string|max:100|unique:branches,name',
+            'abbreviation' => 'nullable|string|max:10'
+        ]);
 
-        $branch = Branch::create(['name' => $request->name]);
+        $abbreviation = $request->abbreviation ? strtoupper(trim($request->abbreviation)) : null;
+
+        $branch = Branch::create([
+            'name' => $request->name,
+            'abbreviation' => $abbreviation
+        ]);
+        \Illuminate\Support\Facades\Cache::forget('branches_list');
         return response()->json(['message' => 'Branch created successfully.', 'branch' => $branch]);
     }
 
@@ -28,13 +47,22 @@ class BranchController extends Controller
     {
         $request->validate([
             'branch_id' => 'required|integer|exists:branches,id',
-            'name'      => 'required|string|max:100|unique:branches,name,' . $request->branch_id
+            'name'      => 'required|string|max:100|unique:branches,name,' . $request->branch_id,
+            'abbreviation' => 'nullable|string|max:10'
         ]);
 
         $branch = Branch::findOrFail($request->branch_id);
-        $branch->update(['name' => $request->name]);
+        $abbreviation = $request->has('abbreviation') 
+            ? ($request->abbreviation ? strtoupper(trim($request->abbreviation)) : null)
+            : $branch->abbreviation;
 
-        return response()->json(['message' => 'Branch renamed successfully.', 'branch' => $branch]);
+        $branch->update([
+            'name' => $request->name,
+            'abbreviation' => $abbreviation
+        ]);
+
+        \Illuminate\Support\Facades\Cache::forget('branches_list');
+        return response()->json(['message' => 'Branch updated successfully.', 'branch' => $branch]);
     }
 
     public function destroy(Request $request)
@@ -43,7 +71,7 @@ class BranchController extends Controller
 
         $branch = Branch::findOrFail($request->branch_id);
         $branch->delete();
-
+        \Illuminate\Support\Facades\Cache::forget('branches_list');
         return response()->json(['message' => 'Branch deleted successfully.']);
     }
 }

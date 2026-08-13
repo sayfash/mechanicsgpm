@@ -17,6 +17,7 @@ class Inventory extends Model
         'part_name',
         'unit',
         'category',
+        'warranty_category',
         'connected_service',
         'description',
         'available_qty',

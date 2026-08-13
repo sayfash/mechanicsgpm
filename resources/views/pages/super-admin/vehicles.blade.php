@@ -6,18 +6,18 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/60 pb-3.5">
             <div>
                 <h3 class="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
-                    <i class="fa-solid fa-motorcycle text-cyan-400"></i> Vehicles Directory & Inventory
+                    <i class="fa-solid fa-motorcycle text-cyan-400"></i> <span data-i18n="veh.registered_dir">Vehicles Directory & Inventory</span>
                 </h3>
-                <p class="text-xs text-slate-400 mt-0.5">Directory of all client vehicles, specifications, VIN numbers, and bound customer owners.</p>
+                <p class="text-xs text-slate-400 mt-0.5" data-i18n="veh.registered_dir_desc">Directory of all client vehicles, specifications, VIN numbers, and bound customer owners.</p>
             </div>
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-                <button onclick="openVehiclesCSVModal()"
+                <button onclick="openVehiclesCSVModal()" data-permission="edit_vehicles"
                     class="px-3.5 py-2 bg-cyan-600/10 hover:bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-file-excel text-cyan-400"></i> Upload Batch Vehicles
+                    <i class="fa-solid fa-file-excel text-cyan-400"></i> <span data-i18n="veh.upload_batch">Upload Batch Vehicles</span>
                 </button>
-                <button onclick="openAddVehicleModal()"
+                <button onclick="openAddVehicleModal()" data-permission="edit_vehicles"
                     class="px-3.5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1.5 shadow-lg shadow-cyan-500/20 shrink-0">
-                    <i class="fa-solid fa-motorcycle"></i> Add New Vehicle
+                    <i class="fa-solid fa-motorcycle"></i> <span data-i18n="veh.add_new">Add New Vehicle</span>
                 </button>
             </div>
         </div>
@@ -32,13 +32,13 @@
                 <input type="text" id="super-admin-vehicles-search"
                     oninput="filterVehiclesAndCustomers()"
                     placeholder="Search license plate, brand/model, VIN, customer..."
-                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-mono">
+                    class="w-full pl-9 pr-4 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200">
             </div>
 
             <!-- Branch Filter -->
             <select id="super-admin-vehicles-branch-filter" onchange="filterVehiclesAndCustomers()"
                 class="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200">
-                <option value="">All Branches</option>
+                <option value="" data-i18n="table.all_branches">All Branches</option>
             </select>
 
             <!-- Custom Column Filter Group -->
@@ -52,17 +52,18 @@
                     <option value="vin">VIN (Frame No)</option>
                     <option value="engine_number">Engine No</option>
                     <option value="controller_number">Controller Code</option>
+                    <option value="activate_date">Activate Date</option>
                     <option value="customer_name">Owner Name</option>
                 </select>
                 <input type="text" id="super-admin-vehicles-column-val" oninput="filterVehiclesAndCustomers()"
                     placeholder="Value..."
-                    class="w-full flex-1 min-w-[90px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-mono">
+                    class="w-full flex-1 min-w-[90px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200">
             </div>
 
             <!-- Sort Control -->
             <div class="flex items-center gap-2 flex-1 min-w-[200px]">
                 <span class="text-xs text-slate-400 font-semibold uppercase flex items-center gap-1.5 shrink-0"><i
-                        class="fa-solid fa-arrow-down-short-wide text-cyan-400"></i>Sort:</span>
+                        class="fa-solid fa-arrow-down-short-wide text-cyan-400"></i><span data-i18n="table.sort">Sort:</span></span>
                 <select id="super-admin-vehicles-sort-select" onchange="filterVehiclesAndCustomers()"
                     class="w-full flex-1 min-w-[130px] px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-medium">
                     <option value="id-desc">ID (Newest First)</option>
@@ -78,14 +79,14 @@
                 <button type="button" id="btn-veh-column-toggle" onclick="toggleVehColumnMenu(event)"
                     class="w-full px-3.5 py-2.5 rounded-xl text-xs bg-slate-900 border border-slate-800 text-slate-200 font-semibold hover:bg-slate-800 transition flex items-center justify-between gap-2 shadow-sm">
                     <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-columns text-cyan-400"></i> Columns
+                        <i class="fa-solid fa-columns text-cyan-400"></i> <span data-i18n="table.columns">Columns</span>
                     </span>
                     <i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i>
                 </button>
                 <div id="veh-column-menu" class="hidden absolute right-0 mt-2 w-56 rounded-xl bg-slate-950/95 backdrop-blur-xl border border-slate-800 shadow-2xl p-3 z-[100] text-xs space-y-2">
                     <div class="flex items-center justify-between border-b border-slate-800/80 pb-2 mb-1">
-                        <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]">Show / Hide Columns</span>
-                        <button type="button" onclick="resetVehColumns()" class="text-[10px] text-cyan-400 hover:underline font-semibold">Select All</button>
+                        <span class="font-bold text-slate-200 uppercase tracking-wider text-[10px]" data-i18n="table.show_hide_columns">Show / Hide Columns</span>
+                        <button type="button" onclick="resetVehColumns()" class="text-[10px] text-cyan-400 hover:underline font-semibold" data-i18n="table.select_all">Select All</button>
                     </div>
                     <div class="space-y-1.5 max-h-60 overflow-y-auto custom-scrollbar">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
@@ -94,11 +95,11 @@
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="license_plate" checked onchange="toggleVehColumn('license_plate', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>License Plate</span>
+                            <span data-i18n="shop.license_plate">License Plate</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="brand_model" checked onchange="toggleVehColumn('brand_model', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>Brand / Model</span>
+                            <span data-i18n="shop.veh_type">Brand / Model</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="color" checked onchange="toggleVehColumn('color', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
@@ -106,23 +107,31 @@
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="vin" checked onchange="toggleVehColumn('vin', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>VIN (Frame No)</span>
+                            <span data-i18n="shop.frame_num">VIN (Frame No)</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="engine" checked onchange="toggleVehColumn('engine', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
                             <span>Engine No</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
-                            <input type="checkbox" data-veh-col="controller" checked onchange="toggleVehColumn('controller', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>Controller Code</span>
+                            <input type="checkbox" data-veh-col="controller_code" checked onchange="toggleVehColumn('controller_code', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
+                            <span data-i18n="shop.controller_num">Controller Code</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
-                            <input type="checkbox" data-veh-col="owner" checked onchange="toggleVehColumn('owner', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>Assigned Owner</span>
+                            <input type="checkbox" data-veh-col="activate_date" checked onchange="toggleVehColumn('activate_date', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
+                            <span data-i18n="veh.activate_date">Activate Date</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
+                            <input type="checkbox" data-veh-col="branch" checked onchange="toggleVehColumn('branch', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
+                            <span data-i18n="shop.branch">Branch</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
+                            <input type="checkbox" data-veh-col="customer_owner" checked onchange="toggleVehColumn('customer_owner', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
+                            <span data-i18n="veh.owner_name">Owner Name</span>
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white select-none py-0.5">
                             <input type="checkbox" data-veh-col="actions" checked onchange="toggleVehColumn('actions', this.checked)" class="w-3.5 h-3.5 accent-cyan-500 rounded bg-slate-900 border-slate-700">
-                            <span>Actions</span>
+                            <span data-i18n="table.actions">Actions</span>
                         </label>
                     </div>
                 </div>
@@ -141,14 +150,16 @@
                     <tr id="super-admin-vehicles-thead-tr"
                         class="bg-slate-900 text-slate-400 border-b border-slate-800 font-semibold uppercase tracking-wider text-[10px] text-center">
                         <th class="p-3 w-16 text-center">ID</th>
-                        <th class="p-3 w-28 text-center">License Plate</th>
-                        <th class="p-3 w-36 text-center">Brand / Model</th>
-                        <th class="p-3 w-24 text-center">Color</th>
-                        <th class="p-3 w-40 text-center">VIN (Frame No)</th>
-                        <th class="p-3 w-36 text-center">Engine No</th>
-                        <th class="p-3 w-36 text-center">Controller Code</th>
-                        <th class="p-3 min-w-[180px] text-center">Assigned Owner</th>
-                        <th class="p-3 w-28 text-center">Actions</th>
+                        <th class="p-3 w-28 text-center" data-i18n="shop.license_plate">License Plate</th>
+                        <th class="p-3 w-36 text-center" data-i18n="shop.veh_type">Brand / Model</th>
+                        <th class="p-3 w-24 text-center" data-i18n="veh.color">Color</th>
+                        <th class="p-3 w-40 text-center" data-i18n="shop.frame_num">VIN (Frame No)</th>
+                        <th class="p-3 w-36 text-center" data-i18n="veh.engine_no">Engine No</th>
+                        <th class="p-3 w-36 text-center" data-i18n="shop.controller_num">Controller Code</th>
+                        <th class="p-3 w-32 text-center" data-i18n="veh.activate_date">Activate Date</th>
+                        <th class="p-3 w-28 text-center" data-i18n="shop.branch">Branch</th>
+                        <th class="p-3 min-w-[180px] text-center" data-i18n="veh.owner_name">Assigned Owner</th>
+                        <th class="p-3 w-28 text-center" data-i18n="table.actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="super-admin-vehicles-tbody"

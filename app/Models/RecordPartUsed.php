@@ -16,6 +16,9 @@ class RecordPartUsed extends Model
         'inventory_id',
         'quantity_used',
         'price_at_use',
+        'is_charged',
+        'is_claimed',
+        'warranty_category',
     ];
 
     public function maintenanceRecord()

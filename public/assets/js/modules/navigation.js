@@ -30,14 +30,14 @@ function renderRoleBasedNavigation() {
 
         allowedItems.forEach(item => {
             desktopHtml += `
-                <a href="#" onclick="onNavRouteClick(event, '${item.id}')" data-route="${item.id}" class="nav-link-item group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-900 transition">
+                <a href="#" onclick="onNavRouteClick(event, '${item.id}')" data-route="${item.id}" class="nav-link-item group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-900 shadow-none transition">
                     <i class="fa-solid ${item.icon} text-slate-400 group-hover:text-blue-400 w-5 text-center transition"></i>
                     <span class="sidebar-label">${escapeHtml(item.label)}</span>
                     <div class="sidebar-tooltip">${escapeHtml(item.label)}</div>
                 </a>
             `;
             mobileHtml += `
-                <a href="#" onclick="onNavRouteClick(event, '${item.id}')" data-route="${item.id}" class="nav-link-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-900 transition">
+                <a href="#" onclick="onNavRouteClick(event, '${item.id}')" data-route="${item.id}" class="nav-link-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-300 hover:bg-slate-900 shadow-none transition">
                     <i class="fa-solid ${item.icon} text-slate-400 w-5 text-center"></i>
                     <span>${escapeHtml(item.label)}</span>
                 </a>
@@ -140,6 +140,34 @@ function toggleMobileDrawer() {
 }
 window.toggleMobileDrawer = toggleMobileDrawer;
 
+function updateDropdownUserRoleUI(nameElId, roleElId) {
+    if (!AppStore.user) return;
+    const uNameEl = document.getElementById(nameElId);
+    const uRoleEl = document.getElementById(roleElId);
+
+    if (uNameEl) uNameEl.innerText = AppStore.user.display_name || AppStore.user.username || 'Santomo Group';
+
+    if (uRoleEl) {
+        const role = AppStore.user.role || 'user';
+        const roleName = role === 'inventory_admin' ? 'INVENTORY ADMIN' : role.toUpperCase().replace('_', ' ');
+        uRoleEl.innerText = roleName;
+
+        let chipClasses = "px-1.5 py-[1px] text-[8px] tracking-wider font-extrabold rounded-full inline-block uppercase border ";
+        if (role === 'super_admin') {
+            chipClasses += "bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800/40";
+        } else if (role === 'manager') {
+            chipClasses += "bg-cyan-100 text-cyan-700 dark:bg-cyan-950 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800/40";
+        } else if (role === 'shop_admin') {
+            chipClasses += "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/40";
+        } else if (role === 'inventory_admin') {
+            chipClasses += "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800/40";
+        } else {
+            chipClasses += "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800/40";
+        }
+        uRoleEl.className = chipClasses;
+    }
+}
+
 function toggleTopProfileDropdown(e) {
     if (e) {
         if (e.preventDefault) e.preventDefault();
@@ -149,13 +177,7 @@ function toggleTopProfileDropdown(e) {
     if (!dropdown) return;
 
     dropdown.classList.toggle('hidden');
-
-    if (AppStore.user) {
-        const uNameEl = document.getElementById('dropdown-user-name');
-        const uEmailEl = document.getElementById('dropdown-user-email');
-        if (uNameEl) uNameEl.innerText = AppStore.user.display_name || AppStore.user.username || 'Santomo Group';
-        if (uEmailEl) uEmailEl.innerText = `${(AppStore.user.username || 'user').toLowerCase()}@sgpm.id`;
-    }
+    updateDropdownUserRoleUI('dropdown-user-name', 'dropdown-user-role');
 }
 window.toggleTopProfileDropdown = toggleTopProfileDropdown;
 
@@ -177,12 +199,8 @@ function toggleProfileDropdown(e) {
         dropdown.classList.remove('hidden');
     }
 
-    if (AppStore.user) {
-        const uNameEl = document.getElementById('dropdown-user-name');
-        const uEmailEl = document.getElementById('dropdown-user-email');
-        if (uNameEl) uNameEl.innerText = AppStore.user.display_name || AppStore.user.username || 'Santomo Group';
-        if (uEmailEl) uEmailEl.innerText = `${(AppStore.user.username || 'user').toLowerCase()}@sgpm.id`;
-    }
+    updateDropdownUserRoleUI('dropdown-user-name', 'dropdown-user-role');
+    updateDropdownUserRoleUI('mobile-dropdown-user-name', 'mobile-dropdown-user-role');
 }
 window.toggleProfileDropdown = toggleProfileDropdown;
 
@@ -193,6 +211,8 @@ function toggleMobileProfileDropdown(e) {
     }
     const menu = document.getElementById('mobile-profile-dropdown');
     if (menu) menu.classList.toggle('hidden');
+
+    updateDropdownUserRoleUI('mobile-dropdown-user-name', 'mobile-dropdown-user-role');
 }
 window.toggleMobileProfileDropdown = toggleMobileProfileDropdown;
 
@@ -238,6 +258,63 @@ function setActiveNavRoute(routeId) {
     document.querySelectorAll(`.nav-link-item[data-route="${routeId}"]`).forEach(el => {
         el.classList.add('active');
     });
+
+    const mobileContext = document.getElementById('mobile-page-context');
+    const bSection = document.getElementById('breadcrumb-section-label');
+    const bTab = document.getElementById('breadcrumb-tab-label');
+
+    // Role-based Section Titles
+    const roleSectionMap = {
+        'super_admin': { id: 'Super Admin Portal', en: 'Super Admin Portal' },
+        'manager': { id: 'Portal Manajerial', en: 'Managerial Portal' },
+        'shop_admin': { id: 'Administrasi Cabang', en: 'Branch Administration' },
+        'inventory_admin': { id: 'Manajemen Suku Cadang', en: 'Inventory Management' },
+        'mechanic': { id: 'Stasiun Mekanik', en: 'Mechanic Workstation' }
+    };
+
+    // Route-based Page/Tab Titles
+    const routeTitleMap = {
+        'stats': { id: 'Metrik Kinerja Eksekutif', en: 'Executive Performance Metrics' },
+        'reports': { id: 'Laporan & Analisis', en: 'Reports & Analytics' },
+        'mechanic': { id: 'Lembar Kerja Mekanik', en: 'Mechanic Workstation' },
+        'mechanic-review': { id: 'Verifikasi Daftar Periksa', en: 'Checklist Verification' },
+        'mechanic-history': { id: 'Riwayat Perbaikan Saya', en: 'My Repair History' },
+        'inventory': { id: 'Master Inventaris Global', en: 'Global Inventory Master' },
+        'maintenance': { id: 'Catatan Perbaikan Rinci', en: 'Detailed Maintenance Records' },
+        'vehicles': { id: 'Direktori Kendaraan', en: 'Vehicles Directory' },
+        'customers': { id: 'Pelanggan Terdaftar', en: 'Registered Customers' },
+        'management': 'Data Management Console',
+        'logs': { id: 'Log Audit Kepatuhan', en: 'Compliance Audit Logs' },
+        'shop-inventory': { id: 'Stok Inventaris Cabang', en: 'Live Branch Stock' },
+        'shop-intake': { id: 'Penerimaan & Servis', en: 'Intake & Repair Sheet' },
+        'shop-active-job': { id: 'Detail Pekerjaan Aktif', en: 'Active Job Details' },
+        'shop-maintenance': { id: 'Catatan Servis Cabang', en: 'Branch Maintenance Records' },
+        'shop-review': { id: 'Riwayat Servis Pelanggan', en: 'Customer History Logs' },
+        'shop-history': { id: 'Riwayat Pemakaian Part', en: 'Spare Part Usage History' }
+    };
+
+    const userRole = (window.AppStore && window.AppStore.user && window.AppStore.user.role) ? window.AppStore.user.role : '';
+    const currentLang = (typeof getAppLanguage === 'function') ? getAppLanguage() : 'en';
+
+    // 1. Determine Section Label (Role-based)
+    let sectionLabelText = 'Compliance Desk';
+    if (roleSectionMap[userRole]) {
+        sectionLabelText = roleSectionMap[userRole][currentLang] || roleSectionMap[userRole]['en'];
+    }
+
+    // 2. Determine Tab/Page Label (Route-based)
+    let tabLabelText = 'Overview';
+    if (routeTitleMap[routeId]) {
+        if (typeof routeTitleMap[routeId] === 'object') {
+            tabLabelText = routeTitleMap[routeId][currentLang] || routeTitleMap[routeId]['en'];
+        } else {
+            tabLabelText = routeTitleMap[routeId];
+        }
+    }
+
+    if (mobileContext) mobileContext.innerText = tabLabelText;
+    if (bTab) bTab.innerText = tabLabelText;
+    if (bSection) bSection.innerText = sectionLabelText;
 }
 window.setActiveNavRoute = setActiveNavRoute;
 
@@ -261,12 +338,15 @@ function onNavRouteClick(e, routeId) {
     setActiveNavRoute(routeId);
     closeMobileDrawer();
 
-    if (AppStore.user?.role === 'shop_admin') {
+    if (AppStore.user?.role === 'shop_admin' || AppStore.user?.role === 'inventory_admin') {
         showSection('shop-admin-workspace');
         if (typeof setShopAdminTab === 'function') {
             let tab = 'inventory';
             if (routeId === 'shop-history') tab = 'history';
             else if (routeId === 'shop-intake') tab = 'intake';
+            else if (routeId === 'shop-active-job') tab = 'active-job';
+            else if (routeId === 'shop-maintenance') tab = 'maintenance';
+            else if (routeId === 'shop-review') tab = 'review';
             setShopAdminTab(tab);
         }
         return;
@@ -283,7 +363,7 @@ function onNavRouteClick(e, routeId) {
         return;
     }
 
-    if (AppStore.user?.role === 'super_admin') {
+    if (AppStore.user?.role === 'super_admin' || AppStore.user?.role === 'manager') {
         showSection('super-admin-workspace');
         if (typeof setSuperAdminTab === 'function') {
             setSuperAdminTab(routeId);
@@ -315,7 +395,7 @@ function showSection(sectionId) {
         if (mobileHeader) mobileHeader.classList.add('hidden');
         if (topAppBar) {
             topAppBar.classList.add('hidden');
-            topAppBar.classList.remove('md:flex');
+            topAppBar.classList.remove('flex', 'sm:flex', 'md:flex');
         }
     } else {
         if (main) {
@@ -335,7 +415,7 @@ function showSection(sectionId) {
         }
         if (topAppBar) {
             topAppBar.classList.remove('hidden');
-            topAppBar.classList.add('flex');
+            topAppBar.classList.add('hidden', 'md:flex');
         }
     }
 }
@@ -355,15 +435,25 @@ function renderDashboardLayout() {
     const name = AppStore.user.display_name || AppStore.user.username;
     if (uNameDisplay) uNameDisplay.innerText = name;
 
-    const roleName = AppStore.user.role === 'super_admin' ? 'Super Admin' : (AppStore.user.role === 'shop_admin' ? 'Shop Admin' : 'Mechanic');
+    const roleName = AppStore.user.role === 'super_admin'
+        ? 'Super Admin'
+        : (AppStore.user.role === 'manager'
+            ? 'Manager'
+            : (AppStore.user.role === 'shop_admin'
+                ? 'Shop Admin'
+                : (AppStore.user.role === 'inventory_admin' ? 'Inventory Admin' : 'Mechanic')));
 
     if (dRole) {
         dRole.innerText = roleName;
         dRole.className = "text-[9px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full inline-block mt-0.5 ";
         if (AppStore.user.role === 'super_admin') {
             dRole.className += "bg-violet-950 text-violet-400 border border-violet-800/40";
+        } else if (AppStore.user.role === 'manager') {
+            dRole.className += "bg-cyan-950 text-cyan-400 border border-cyan-800/40";
         } else if (AppStore.user.role === 'shop_admin') {
             dRole.className += "bg-emerald-950 text-emerald-400 border border-emerald-800/40";
+        } else if (AppStore.user.role === 'inventory_admin') {
+            dRole.className += "bg-amber-950 text-amber-400 border border-amber-800/40";
         } else {
             dRole.className += "bg-blue-950 text-blue-400 border border-blue-800/40";
         }

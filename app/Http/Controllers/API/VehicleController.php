@@ -13,8 +13,26 @@ class VehicleController extends Controller
 {
     public function index(Request $request)
     {
-        $vehicles = Vehicle::with('customer')->orderBy('license_plate', 'asc')->get();
-        $customers = \App\Models\Customer::withCount('vehicles')->orderBy('name', 'asc')->get();
+        Vehicle::enforceSingleCustomerBinding();
+        $user = auth()->user();
+
+        $vehQuery = Vehicle::with(['customer', 'branch']);
+        $custQuery = \App\Models\Customer::with('vehicles:id,customer_id,license_plate,vehicle_type,make,model', 'branch:id,name')->withCount('vehicles');
+
+        if ($user && $user->branch_id && !in_array(strtolower($user->role), ['super_admin', 'superadmin'])) {
+            $vehQuery->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)
+                  ->orWhereNull('branch_id');
+            });
+            $custQuery->where(function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id)
+                  ->orWhereNull('branch_id');
+            });
+        }
+
+        $vehicles = $vehQuery->orderBy('license_plate', 'asc')->get();
+        $customers = $custQuery->orderBy('name', 'asc')->get();
+
         return response()->json([
             'vehicles' => $vehicles,
             'customers' => $customers,
@@ -27,6 +45,7 @@ class VehicleController extends Controller
             'vehicle_id' => 'nullable|string|max:50',
             'license_plate' => 'required|string|max:20|unique:vehicles,license_plate',
             'customer_id' => 'nullable|string|exists:customers,id',
+            'branch_id' => 'nullable',
             'make' => 'nullable|string|max:50',
             'model' => 'nullable|string|max:50',
             'vehicle_type' => 'nullable|string|max:50',
@@ -35,6 +54,7 @@ class VehicleController extends Controller
             'vin' => 'nullable|string|max:50|unique:vehicles,vin',
             'engine_number' => 'nullable|string|max:50',
             'controller_number' => 'nullable|string|max:50',
+            'activate_date' => 'nullable|date',
         ]);
 
         $customId = $request->vehicle_id;
@@ -48,11 +68,23 @@ class VehicleController extends Controller
 
         $id = $customId ?: 'VEH-' . strtoupper(substr(md5(uniqid(microtime(true))), 0, 8));
 
+        $rawBranch = $request->input('branch_id');
+        $resolvedBranchId = null;
+        if (!empty($rawBranch) && $rawBranch !== 'global' && $rawBranch !== 'null') {
+            $resolvedBranchId = intval($rawBranch);
+        } else if ($request->has('branch_name') && !empty($request->branch_name) && strtolower($request->branch_name) !== 'global') {
+            $b = \App\Models\Branch::where('name', 'like', "%{$request->branch_name}%")
+                ->orWhere('abbreviation', 'like', "%{$request->branch_name}%")
+                ->first();
+            if ($b) $resolvedBranchId = $b->id;
+        }
+
         DB::beginTransaction();
         try {
             $vehicle = Vehicle::create([
                 'id' => $id,
                 'customer_id' => $request->customer_id ?: null,
+                'branch_id' => $resolvedBranchId,
                 'make' => $request->make ?: 'Generic',
                 'model' => $request->model ?: 'EV',
                 'vehicle_type' => $request->vehicle_type,
@@ -62,6 +94,7 @@ class VehicleController extends Controller
                 'vin' => $request->vin,
                 'engine_number' => $request->engine_number,
                 'controller_number' => $request->controller_number,
+                'activate_date' => $request->activate_date ?: null,
             ]);
 
             AuditLog::create([
@@ -73,7 +106,7 @@ class VehicleController extends Controller
             ]);
 
             DB::commit();
-            return response()->json(['message' => 'Vehicle added successfully.', 'vehicle_id' => $vehicle->id]);
+            return response()->json(['message' => 'Vehicle created successfully.', 'vehicle_id' => $vehicle->id]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Failed to create vehicle: ' . $e->getMessage()], 500);
@@ -85,6 +118,7 @@ class VehicleController extends Controller
         $request->validate([
             'vehicle_id' => 'required|string|exists:vehicles,id',
             'customer_id' => 'nullable|string|exists:customers,id',
+            'branch_id' => 'nullable',
             'make' => 'required|string|max:50',
             'model' => 'required|string|max:50',
             'vehicle_type' => 'nullable|string|max:50',
@@ -92,6 +126,9 @@ class VehicleController extends Controller
             'year' => 'nullable|integer',
             'license_plate' => 'required|string|max:20',
             'vin' => 'nullable|string|max:50',
+            'engine_number' => 'nullable|string|max:50',
+            'controller_number' => 'nullable|string|max:50',
+            'activate_date' => 'nullable|date',
         ]);
 
         $vehicle = Vehicle::find($request->vehicle_id);
@@ -107,7 +144,7 @@ class VehicleController extends Controller
 
         DB::beginTransaction();
         try {
-            $vehicle->update([
+            $dataToUpdate = [
                 'customer_id' => $request->customer_id,
                 'make' => $request->make,
                 'model' => $request->model,
@@ -116,7 +153,25 @@ class VehicleController extends Controller
                 'year' => $request->year ?? date('Y'),
                 'license_plate' => $request->license_plate,
                 'vin' => $request->vin,
-            ]);
+                'engine_number' => $request->engine_number,
+                'controller_number' => $request->controller_number,
+                'activate_date' => $request->activate_date ?: null,
+            ];
+            if ($request->has('branch_id')) {
+                $rawBranch = $request->input('branch_id');
+                $dataToUpdate['branch_id'] = (!empty($rawBranch) && $rawBranch !== 'global' && $rawBranch !== 'null') ? intval($rawBranch) : null;
+            } else if ($request->has('branch_name')) {
+                $bName = $request->input('branch_name');
+                if (empty($bName) || strtolower($bName) === 'global') {
+                    $dataToUpdate['branch_id'] = null;
+                } else {
+                    $b = \App\Models\Branch::where('name', 'like', "%{$bName}%")
+                        ->orWhere('abbreviation', 'like', "%{$bName}%")
+                        ->first();
+                    if ($b) $dataToUpdate['branch_id'] = $b->id;
+                }
+            }
+            $vehicle->update($dataToUpdate);
 
             AuditLog::create([
                 'user_id' => auth()->id() ?? 1,
@@ -177,30 +232,54 @@ class VehicleController extends Controller
         DB::beginTransaction();
         try {
             foreach ($rows as $row) {
+                $vehId = trim($row['Vehicle ID'] ?? $row['Veh ID'] ?? $row['ID'] ?? '');
                 $plate = trim($row['License Plate'] ?? '');
                 $frame = trim($row['Frame Number / VIN'] ?? '');
                 $controller = trim($row['Controller Number'] ?? '');
+                $custId = trim($row['Customer ID'] ?? $row['Cust ID'] ?? '');
+                $custIdCard = trim($row['ID Card Number'] ?? $row['Customer ID Card'] ?? $row['KTP'] ?? '');
                 $custName = trim($row['Customer Name'] ?? '');
 
-                if (!$plate && !$frame && !$controller) continue;
+                if (!$vehId && !$plate && !$frame && !$controller) continue;
 
-                // Lookup customer if name provided
+                // Lookup customer if ID, ID Card (KTP), or Name provided
                 $customerId = null;
-                if ($custName) {
+                if ($custId) {
+                    $c = \App\Models\Customer::find($custId);
+                    if ($c) $customerId = $c->id;
+                }
+                if (!$customerId && $custIdCard) {
+                    $c = \App\Models\Customer::where('id_card_number', $custIdCard)->first();
+                    if ($c) $customerId = $c->id;
+                }
+                if (!$customerId && $custName) {
                     $c = \App\Models\Customer::where('name', 'like', "%{$custName}%")->first();
                     if ($c) $customerId = $c->id;
                 }
 
                 $vehicle = null;
-                if ($plate) {
+                if ($vehId) {
+                    $vehicle = Vehicle::find($vehId);
+                }
+                if (!$vehicle && $plate) {
                     $vehicle = Vehicle::where('license_plate', $plate)->first();
                 }
                 if (!$vehicle && $frame) {
                     $vehicle = Vehicle::where('vin', $frame)->first();
                 }
 
+                $branchName = trim($row['Branch'] ?? $row['Branch Name'] ?? $row['Branch Abbreviation'] ?? '');
+                $branchId = null;
+                if ($branchName) {
+                    $b = \App\Models\Branch::where('name', 'like', "%{$branchName}%")
+                        ->orWhere('abbreviation', 'like', "%{$branchName}%")
+                        ->first();
+                    if ($b) $branchId = $b->id;
+                }
+
                 $data = [
                     'customer_id' => $customerId ?: ($vehicle ? $vehicle->customer_id : null),
+                    'branch_id' => $branchId ?: ($vehicle ? $vehicle->branch_id : (auth()->user()->branch_id ?? 1)),
                     'license_plate' => $plate ?: ($vehicle ? $vehicle->license_plate : 'TEMP-' . strtoupper(substr(md5(uniqid()), 0, 6))),
                     'vehicle_type' => $row['Vehicle Type'] ?? 'Motorcycle',
                     'make' => $row['Make'] ?? 'Generic',
@@ -216,6 +295,7 @@ class VehicleController extends Controller
                     $vehicle->update($data);
                     $updated++;
                 } else {
+                    $data['id'] = $vehId ?: ('VEH-' . strtoupper(substr(md5(uniqid(microtime(true))), 0, 8)));
                     Vehicle::create($data);
                     $inserted++;
                 }
@@ -253,5 +333,14 @@ class VehicleController extends Controller
         ]);
 
         return response()->json(['message' => 'Vehicle successfully bound to customer.']);
+    }
+
+    public function rebindVehicles(Request $request)
+    {
+        $unboundCount = Vehicle::enforceSingleCustomerBinding();
+        return response()->json([
+            'message' => "Existing vehicle bindings successfully cleaned up! {$unboundCount} older vehicle(s) unbound to ensure 1 person = max 1 vehicle.",
+            'unbound_count' => $unboundCount
+        ]);
     }
 }

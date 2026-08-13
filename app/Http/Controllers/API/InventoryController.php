@@ -24,12 +24,15 @@ class InventoryController extends Controller
         }
 
         if (Schema::hasTable('sparepart_categories')) {
-            $matched = DB::table('sparepart_categories')
-                ->whereRaw('LOWER(TRIM(name)) = ?', [strtolower($inputCategory)])
-                ->value('name');
+            $categoriesMap = \Illuminate\Support\Facades\Cache::remember('sparepart_categories_map', 3600, function () {
+                return DB::table('sparepart_categories')->pluck('name', 'name')->toArray();
+            });
 
-            if ($matched) {
-                return $matched;
+            $lowerInput = strtolower($inputCategory);
+            foreach ($categoriesMap as $name) {
+                if (strtolower(trim($name)) === $lowerInput) {
+                    return $name;
+                }
             }
         }
 
@@ -39,7 +42,9 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $branchId = $request->query('branch_id');
-        $query = Inventory::with('branch')->orderBy('part_name', 'asc');
+        $query = Inventory::select('id', 'branch_id', 'sku', 'part_name', 'unit', 'category', 'connected_service', 'description', 'available_qty', 'price', 'created_at', 'updated_at')
+            ->with(['branch:id,name,abbreviation'])
+            ->orderBy('part_name', 'asc');
         
         if ($branchId) {
             $query->where('branch_id', $branchId);
@@ -88,12 +93,14 @@ class InventoryController extends Controller
                 ]);
 
                 AuditLog::create([
-                    'user_id'      => auth()->id() ?? 1,
-                    'action_type'  => 'UPDATE',
-                    'target_table' => 'inventory',
-                    'record_id'    => $exists->id,
-                    'old_value'    => $oldValue,
-                    'new_value'    => $exists->toArray(),
+                    'user_id'         => auth()->id() ?? 1,
+                    'action_type'     => 'UPDATE',
+                    'target_table'    => 'inventory',
+                    'module_location' => 'Inventory > Stock Ledger',
+                    'action_summary'  => "Updated stock quantity/price for SKU '{$exists->sku}' ({$exists->part_name})",
+                    'record_id'       => $exists->id,
+                    'old_value'       => $oldValue,
+                    'new_value'       => $exists->toArray(),
                 ]);
 
                 DB::commit();
@@ -105,6 +112,7 @@ class InventoryController extends Controller
                     'part_name'         => trim($request->part_name),
                     'unit'              => $request->unit ?? 'Pcs',
                     'category'          => $category,
+                    'warranty_category' => $request->warranty_category ?? 'Unclaimable / No Warranty',
                     'connected_service' => $request->connected_service,
                     'description'       => $request->description,
                     'available_qty'     => $request->available_qty,
@@ -112,11 +120,13 @@ class InventoryController extends Controller
                 ]);
 
                 AuditLog::create([
-                    'user_id' => auth()->id() ?? 1,
-                    'action_type' => 'CREATE',
-                    'target_table' => 'inventory',
-                    'record_id' => $inventory->id,
-                    'new_value' => $inventory->toArray(),
+                    'user_id'         => auth()->id() ?? 1,
+                    'action_type'     => 'CREATE',
+                    'target_table'    => 'inventory',
+                    'module_location' => 'Inventory > Add Spare Part',
+                    'action_summary'  => "Added new spare part SKU '{$inventory->sku}' ({$inventory->part_name})",
+                    'record_id'       => $inventory->id,
+                    'new_value'       => $inventory->toArray(),
                 ]);
 
                 DB::commit();
@@ -158,6 +168,7 @@ class InventoryController extends Controller
             'part_name' => 'required|string|max:100',
             'unit' => 'nullable|string|max:20',
             'category' => 'required|string|max:100',
+            'warranty_category' => 'nullable|string|max:100',
             'connected_service' => 'nullable|string|max:100',
             'description' => 'nullable|string',
             'available_qty' => 'required|integer|min:0',
@@ -184,6 +195,7 @@ class InventoryController extends Controller
                 'part_name' => $request->part_name,
                 'unit' => $request->unit ?? 'Pcs',
                 'category' => $category,
+                'warranty_category' => $request->warranty_category ?? $inventory->warranty_category ?? 'Unclaimable / No Warranty',
                 'connected_service' => $request->connected_service,
                 'description' => $request->description,
                 'available_qty' => $request->available_qty,
@@ -323,9 +335,43 @@ class InventoryController extends Controller
 
     public function getHistory(Request $request)
     {
-        $history = \App\Models\RecordPartUsed::with(['inventory', 'maintenanceRecord.vehicle'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $user = auth()->user();
+        $query = \App\Models\RecordPartUsed::with(['inventory.branch', 'maintenanceRecord.branch', 'maintenanceRecord.vehicle.customer', 'maintenanceRecord.mechanic']);
+
+        if ($user && in_array($user->role, ['shop_admin', 'inventory_admin']) && $user->branch_id) {
+            $query->whereHas('maintenanceRecord', function ($q) use ($user) {
+                $q->where('branch_id', $user->branch_id);
+            });
+        }
+
+        $history = $query->orderBy('created_at', 'desc')->get()->map(function ($record) {
+            $mRec = $record->maintenanceRecord;
+            $inv = $record->inventory;
+            $veh = $mRec ? $mRec->vehicle : null;
+            $cust = $veh ? $veh->customer : null;
+            $mech = $mRec ? $mRec->mechanic : null;
+
+            // Resolve branch from maintenanceRecord first, fallback to inventory branch
+            $branch = ($mRec && $mRec->branch) ? $mRec->branch : ($inv ? $inv->branch : null);
+
+            return [
+                'id' => $record->id,
+                'maintenance_record_id' => $record->maintenance_record_id,
+                'inventory_id' => $record->inventory_id,
+                'branch_id' => $branch ? $branch->id : ($inv ? $inv->branch_id : null),
+                'branch_name' => $branch ? $branch->name : 'N/A',
+                'quantity_used' => $record->quantity_used,
+                'price_at_use' => $record->price_at_use,
+                'total_billed' => $record->quantity_used * $record->price_at_use,
+                'used_at' => $record->created_at ? $record->created_at->toIso8601String() : ($mRec ? ($mRec->repair_date ?? $mRec->created_at) : null),
+                'part_name' => $inv ? $inv->part_name : 'Unknown Part',
+                'sku' => $inv ? $inv->sku : null,
+                'category' => $inv ? $inv->category : 'General',
+                'customer_name' => $cust ? $cust->name : ($mRec ? ($mRec->customer_name ?? 'N/A') : 'N/A'),
+                'license_plate' => $veh ? $veh->license_plate : ($mRec ? ($mRec->license_plate ?? 'N/A') : 'N/A'),
+                'mechanic_name' => $mech ? ($mech->display_name ?? $mech->username) : 'Unassigned',
+            ];
+        });
 
         return response()->json($history);
     }
@@ -391,12 +437,23 @@ class InventoryController extends Controller
                 $rawCategory = $row['Category'] ?? $row['category'] ?? ($inventory ? $inventory->category : '');
                 $category = $this->pairCategory($rawCategory);
 
+                $rawWarranty = trim($row['Warranty Category'] ?? $row['warranty_category'] ?? $row['Warranty'] ?? ($inventory ? $inventory->warranty_category : 'Unclaimable / No Warranty'));
+                $validWarranties = ['Warranty A', 'Warranty B', 'Warranty C', 'Unclaimable / No Warranty'];
+                $matchedWarranty = 'Unclaimable / No Warranty';
+                foreach ($validWarranties as $vw) {
+                    if (strtolower(trim($vw)) === strtolower($rawWarranty)) {
+                        $matchedWarranty = $vw;
+                        break;
+                    }
+                }
+
                 $data = [
                     'branch_id'         => $branchId,
                     'sku'               => $sku,
                     'part_name'         => $partName ?: ($inventory ? $inventory->part_name : 'Unnamed Part'),
                     'unit'              => $row['Unit'] ?? $row['unit'] ?? ($inventory ? $inventory->unit : 'Pcs'),
                     'category'          => $category,
+                    'warranty_category' => $matchedWarranty,
                     'connected_service' => $connService ?: ($inventory ? $inventory->connected_service : null),
                     'description'       => $row['Description'] ?? $row['description'] ?? ($inventory ? $inventory->description : null),
                     'available_qty'     => intval($row['Available Qty'] ?? $row['available_qty'] ?? $row['Qty'] ?? $row['qty'] ?? 0),
@@ -404,11 +461,27 @@ class InventoryController extends Controller
                 ];
 
                 if ($inventory) {
+                    $oldVal = $inventory->toArray();
                     $inventory->update($data);
                     $updated++;
+                    AuditLog::create([
+                        'user_id' => auth()->id() ?? 1,
+                        'action_type' => 'UPLOAD',
+                        'target_table' => 'inventory',
+                        'record_id' => $inventory->id,
+                        'old_value' => $oldVal,
+                        'new_value' => $inventory->toArray(),
+                    ]);
                 } else {
-                    Inventory::create($data);
+                    $newInv = Inventory::create($data);
                     $inserted++;
+                    AuditLog::create([
+                        'user_id' => auth()->id() ?? 1,
+                        'action_type' => 'UPLOAD',
+                        'target_table' => 'inventory',
+                        'record_id' => $newInv->id,
+                        'new_value' => $newInv->toArray(),
+                    ]);
                 }
             }
 
